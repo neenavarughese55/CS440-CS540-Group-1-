@@ -1,4 +1,4 @@
-/* Reset/Global Styles */
+
 * {
     box-sizing: border-box; /* Makes padding/borders easier to manage */
     margin: 0;
@@ -47,14 +47,9 @@
 }
 
 .category-card {
-    /* CHANGE: Remove justify-content: center and align-items: center 
-    These were centering single lines. Now we let the .card-content div manage alignment.
-    */
     display: flex; 
-    /* The rest of the category-card styles remain the same from the previous response */
     text-decoration: none; 
     color: white;
-    /* Removed the old font-size/font-weight since H2 and P now control that */
     height: 150px;
     width: 100%; 
     border-radius: 8px;
