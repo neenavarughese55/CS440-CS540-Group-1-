@@ -118,3 +118,15 @@
     padding-left: 50px;
 }
 
+.container {
+    display: flex;
+    flex-direction: column; /* Stacks children vertically */
+    justify-content: flex-end; /* Aligns content to the bottom */
+    height: 10vh; /* Example: full viewport height for the page */
+        /* Or a fixed height for a container, e.g., height: 200px; */
+    }
+
+.container p {
+        /* Optional styling for the text */
+    margin: 0; /* Remove default paragraph margin */
+    }
