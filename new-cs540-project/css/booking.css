@@ -1,0 +1,21 @@
+.errorMsg {
+  float: right;
+  font-weight: bold;
+  font-size: 12pt;
+  color: red;
+  margin-left: 10px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+thead {
+  background-color: #f2f2f2;
+}
