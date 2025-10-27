@@ -94,7 +94,7 @@
     <div class="form-group" id="category-container" style="display: none;">
             <label>Category</label>
             <select name="category" id="category">
-              <?php
+            <?php
                 // Database connection
                 $conn = new mysqli("localhost", "root", "", "cs540");
 
