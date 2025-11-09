@@ -125,16 +125,16 @@ try {
         exit;
     }
 
-    // Optional: ensure start/end minute are multiples of 15
-    /*
-    $startMin = (int)$startDateTime->format('i');
-    $endMin = (int)$endDateTime->format('i');
-    if ($startMin % 15 !== 0 || $endMin % 15 !== 0) {
-        $_SESSION['slot_message'] = "❌ Start and end times must be multiples of 15 minutes.";
-        header("Location: ../slot_creating.php");
-        exit;
-    }
-    */
+    // ensure start/end minute are multiples of 15
+    $startMinutes = (int)$startLocal->format('i'); // minutes part
+    $endMinutes   = (int)$endLocal->format('i');
+
+if ($startMinutes % 15 !== 0 || $endMinutes % 15 !== 0) {
+    $_SESSION['slot_message'] = "❌ Start and end times must be on a 15-minute boundary (e.g., 09:00, 09:15, 09:30, 09:45).";
+    header("Location: ../slot_creating.php");
+    exit;
+}
+
 
     // --------------------------
     // Insert into DB (UTC datetimes)
