@@ -68,9 +68,28 @@ try {
     $slotStart = $slot['start_time']; // string 'YYYY-MM-DD HH:MM:SS' (UTC)
     $slotEnd   = $slot['end_time'];
 
+    // --------------------------
+    // Defensive validation: ensure slot times exist and parse as DateTime
+    // --------------------------
+    if (empty($slotStart) || empty($slotEnd)) {
+        $pdo->rollBack();
+        $_SESSION['booking_message'] = "❌ Slot has invalid times.";
+        header("Location: ../booking.php");
+        exit;
+    }
+
+    try {
+        $startDt = new DateTime($slotStart, new DateTimeZone('UTC'));
+        $endDt   = new DateTime($slotEnd,   new DateTimeZone('UTC'));
+    } catch (Exception $ex) {
+        $pdo->rollBack();
+        $_SESSION['booking_message'] = "❌ Slot has invalid datetime format.";
+        header("Location: ../booking.php");
+        exit;
+    }
+
     // 2) Ensure slot is in the future (UTC)
     $nowUtc = new DateTime('now', new DateTimeZone('UTC'));
-    $startDt = new DateTime($slotStart, new DateTimeZone('UTC'));
     if ($startDt <= $nowUtc) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Cannot book a slot in the past.";
