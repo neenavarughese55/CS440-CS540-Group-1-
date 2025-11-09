@@ -1,6 +1,16 @@
--- cs540-reordered-datetime.sql
--- Reordered and adjusted so import works in phpMyAdmin/MariaDB
--- Modified: use DATETIME for start_time, end_time, created_at, updated_at
+-- cs540_database_schema_with_migration.sql
+-- Creates schema (DATETIME) and performs an automatic best-effort migration
+-- that converts appointment times stored in America/Chicago into UTC.
+--
+-- IMPORTANT:
+-- - This file drops and recreates the schema (DROP TABLE ...). If you want
+--   to preserve a live DB you already use, *remove the DROP TABLE* lines
+--   or run the migration UPDATEs separately (see notes below).
+-- - The conversion uses CONVERT_TZ when available (recommended). If MySQL
+--   timezone tables are NOT loaded, it falls back to subtracting 6 hours
+--   (a best-effort approximation for America/Chicago). DST edge-cases may be off.
+--
+-- Run this file in phpMyAdmin / mysql client to create the DB + migrate times.
 
 CREATE DATABASE IF NOT EXISTS cs540 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE cs540;
@@ -38,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` varchar(255) NOT NULL,
   `password_hash` text NOT NULL,
   `username` varchar(200) DEFAULT NULL,
-  `timezone` varchar(64) NOT NULL DEFAULT 'UTC'
+  `timezone` varchar(64) NOT NULL DEFAULT 'UTC',
   `role` varchar(20) NOT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -124,7 +134,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------------------------------
--- 7) add foreign key constraints (all referenced tables exist now)
+-- 7) add foreign key constraints
 -- ----------------------------------------------------
 ALTER TABLE `provider_profiles`
   ADD CONSTRAINT `provider_profiles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
@@ -152,7 +162,33 @@ INSERT INTO `categories` (`id`, `name`, `description`) VALUES
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- ----------------------------------------------------
--- 9) triggers (phpMyAdmin supports DELIMITER blocks)
+-- 9) MIGRATION: convert existing Chicago-local datetimes -> UTC (best-effort)
+-- ----------------------------------------------------
+-- The following UPDATEs attempt to convert any existing datetime rows that were
+-- stored in America/Chicago into UTC. They use CONVERT_TZ when available; if
+-- CONVERT_TZ returns NULL (time zone tables not loaded), they fall back to
+-- subtracting 6 hours (CST) as a best-effort fallback. DST edge-cases may be wrong.
+--
+-- If you have no existing data (fresh install) these statements do nothing.
+-- If you are running this file against a live DB with important data, consider
+-- backing up before running (this file drops tables above, so be cautious).
+
+-- Convert appointment_slots
+UPDATE appointment_slots
+SET start_time = COALESCE(CONVERT_TZ(start_time, 'America/Chicago', 'UTC'),
+                          DATE_SUB(start_time, INTERVAL 6 HOUR)),
+    end_time   = COALESCE(CONVERT_TZ(end_time,   'America/Chicago', 'UTC'),
+                          DATE_SUB(end_time,   INTERVAL 6 HOUR));
+
+-- Convert appointments
+UPDATE appointments
+SET start_time = COALESCE(CONVERT_TZ(start_time, 'America/Chicago', 'UTC'),
+                          DATE_SUB(start_time, INTERVAL 6 HOUR)),
+    end_time   = COALESCE(CONVERT_TZ(end_time,   'America/Chicago', 'UTC'),
+                          DATE_SUB(end_time,   INTERVAL 6 HOUR));
+
+-- ----------------------------------------------------
+-- 10) triggers (phpMyAdmin supports DELIMITER blocks)
 -- ----------------------------------------------------
 DELIMITER $$
 CREATE TRIGGER `prevent_provider_overlap` BEFORE INSERT ON `appointments` FOR EACH ROW
@@ -200,6 +236,6 @@ $$
 DELIMITER ;
 
 -- ----------------------------------------------------
--- 10) restore fk checks
+-- 11) restore fk checks
 -- ----------------------------------------------------
 SET FOREIGN_KEY_CHECKS = @OLD_FK;
