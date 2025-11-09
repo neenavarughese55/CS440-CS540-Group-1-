@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` varchar(255) NOT NULL,
   `password_hash` text NOT NULL,
   `username` varchar(200) DEFAULT NULL,
+  `timezone` varchar(64) NOT NULL DEFAULT 'UTC'
   `role` varchar(20) NOT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
