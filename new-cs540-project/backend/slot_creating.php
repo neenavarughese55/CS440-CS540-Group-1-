@@ -104,8 +104,16 @@ try {
 
     $_SESSION['slot_message'] = "✅ Appointment Slot Successfully Created!";
 } catch (PDOException $e) {
-    $_SESSION['slot_message'] = "❌ Failed to create appointment slot. Please try again!";
-    error_log("Database error (slot_creating): " . $e->getMessage());
+    $errMsg = $e->getMessage() ?? '';
+
+    // Friendly message for overlapping slot trigger
+    if (stripos($errMsg, 'Overlapping appointment slot') !== false) {
+        $_SESSION['slot_message'] = "❌ You already have a slot during this time. Please choose a different time.";
+    } else {
+        $_SESSION['slot_message'] = "❌ Failed to create appointment slot. Please try again!";
+    }
+
+    error_log("Database error (slot_creating): " . $errMsg);
 } catch (Exception $e) {
     $_SESSION['slot_message'] = "Error: " . htmlspecialchars($e->getMessage() ?? '');
 }
