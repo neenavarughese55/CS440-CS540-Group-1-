@@ -40,7 +40,6 @@
             }
           ?>
         </span>
-        <!-- End Warning message For when Login panel is active -->
 
         <form id="loginForm" action="./backend/login.php" method="post">
           <input type="hidden" name="action" value="login" />
@@ -97,19 +96,12 @@
             <label>Category</label>
             <select name="category" id="category">
               <?php
-                // Database connection
                 $conn = new mysqli("localhost", "root", "", "cs540");
-
-                // Check connection
                 if ($conn->connect_error) {
                     die("Connection failed: " . $conn->connect_error);
                 }
-
-                // Query provider profiles
                 $sql = "SELECT id, name FROM categories";
                 $result = $conn->query($sql);
-
-                // Populate dropdown
                 if ($result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
                         $id = htmlspecialchars($row["id"]);
@@ -117,7 +109,6 @@
                         echo "<option value=\"$id\">$name</option>";
                     }
                 }
-
                 $conn->close();
               ?>
             </select>
@@ -127,7 +118,6 @@
             <label>Qualifications</label>
             <input type="file" name="qualifications" id="qualifications" />
           </div>
-
 
           <div class="form-group">
             <label>Phone Number</label>
@@ -141,11 +131,25 @@
             <label>Confirm Password</label>
             <input type="password" id="registered-password-2" name="registered-password-2" minlength="6"/>
           </div>
+
+          <!-- Timezone detection -->
+          <input type="hidden" name="timezone" id="tz-input" value="UTC" />
+          <script>
+            (function() {
+              try {
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (tz) document.getElementById('tz-input').value = tz;
+              } catch (e) {
+                // leave default UTC if detection fails
+              }
+            })();
+          </script>
+          <!-- End timezone detection -->
+
           <button type="submit" id="sub-btn">Create Account</button>
         </form>
       </div>
       <!-- End Registration Panel -->
-
     </div>
   </body>
 </html>

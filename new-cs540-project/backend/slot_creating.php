@@ -8,26 +8,16 @@ $user = 'root';
 $pass = '';
 $charset = 'utf8mb4';
 
-// Get form input:
-$startDate = $_POST['start-date'] ?? '';
-$startTime = $_POST['start-time'] ?? '';
-$endDate = $_POST['end-date'] ?? '';
-$endTime = $_POST['end-time'] ?? '';
-$notes = $_POST['notes'] ?? '';
+// Get form input
+$startDate = trim($_POST['start-date'] ?? '');
+$startTime = trim($_POST['start-time'] ?? '');
+$endDate   = trim($_POST['end-date'] ?? '');
+$endTime   = trim($_POST['end-time'] ?? '');
+$notes     = trim($_POST['notes'] ?? '');
 
-// NOTE: Confirm what these session vars contain in your app:
-// - If provider_profiles_id == provider_profiles.user_id (the user's id), keep as-is.
-// - If provider_profiles_id == provider_profiles.id (profile PK), see the comment below.
+// Session variables
 $provider_id = $_SESSION['provider_profiles_id'] ?? null;
-$user_id = $_SESSION['user_id'] ?? null;
 $category_id = $_SESSION['provider_profiles_category_id'] ?? null;
-
-// Sanitize input:
-$startDate = trim($startDate);
-$startTime = trim($startTime);
-$endDate = trim($endDate);
-$endTime = trim($endTime);
-$notes = trim($notes);
 
 // Basic presence check
 if (empty($provider_id)) {
@@ -41,10 +31,10 @@ if (empty($startDate) || empty($startTime) || empty($endDate) || empty($endTime)
     exit;
 }
 
-// DSN and PDO setup
+// PDO setup
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // throw exceptions
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     PDO::ATTR_EMULATE_PREPARES   => false,
 ];
@@ -53,91 +43,48 @@ try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 
     // -------------------------------
-    // Fetch provider timezone safely
+    // Parse provider-local input
     // -------------------------------
-    $provTz = 'UTC'; // fallback
-
-    // If provider_profiles_id stores profile PK instead of user_id, change WHERE clause to "WHERE id = :pid".
-    $tzStmt = $pdo->prepare("SELECT timezone FROM provider_profiles WHERE user_id = :uid LIMIT 1");
-    $tzStmt->execute([':uid' => $provider_id]);
-    $tzRow = $tzStmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!empty($tzRow['timezone'])) {
-        try {
-            // validate timezone identifier
-            $tzTest = new DateTimeZone($tzRow['timezone']);
-            $provTz = $tzRow['timezone'];
-        } catch (Exception $ex) {
-            // invalid timezone in DB, keep UTC fallback
-            $provTz = 'UTC';
-        }
-    }
-
-    // -------------------------------
-    // Parse provider-local input and convert to UTC
-    // -------------------------------
-    $localStartStr = $startDate . ' ' . $startTime; // expected "YYYY-MM-DD HH:MM" or with seconds
-    $localEndStr   = $endDate . ' ' . $endTime;
-
-    // create timezone object
-    $tzObj = new DateTimeZone($provTz);
-
-    // Prefer 'Y-m-d H:i' (no seconds) then fall back to 'Y-m-d H:i:s'
-    $startLocal = DateTime::createFromFormat('Y-m-d H:i', $localStartStr, $tzObj);
-    if (!$startLocal) {
-        $startLocal = DateTime::createFromFormat('Y-m-d H:i:s', $localStartStr, $tzObj);
-    }
-    $endLocal = DateTime::createFromFormat('Y-m-d H:i', $localEndStr, $tzObj);
-    if (!$endLocal) {
-        $endLocal = DateTime::createFromFormat('Y-m-d H:i:s', $localEndStr, $tzObj);
-    }
+    $startLocal = DateTime::createFromFormat('Y-m-d H:i', "$startDate $startTime");
+    $endLocal   = DateTime::createFromFormat('Y-m-d H:i', "$endDate $endTime");
 
     if (!$startLocal || !$endLocal) {
-        $_SESSION['slot_message'] = "❌ Invalid date/time format. Use YYYY-MM-DD and HH:MM (browser date/time inputs are recommended).";
+        $_SESSION['slot_message'] = "❌ Invalid date/time format. Use YYYY-MM-DD and HH:MM.";
         header("Location: ../slot_creating.php");
         exit;
     }
 
-    // convert to UTC (so DB stores UTC datetimes)
-    $startLocal->setTimezone(new DateTimeZone('UTC'));
-    $endLocal->setTimezone(new DateTimeZone('UTC'));
-    $start_time = $startLocal->format('Y-m-d H:i:s');
-    $end_time   = $endLocal->format('Y-m-d H:i:s');
+    // Ensure start/end minute are multiples of 15
+    $startMinutes = (int)$startLocal->format('i');
+    $endMinutes   = (int)$endLocal->format('i');
 
-    // --------------------------
-    // Validate times in UTC: future & start < end
-    // --------------------------
-    $nowUtc = new DateTime('now', new DateTimeZone('UTC'));
-    $startDateTime = new DateTime($start_time, new DateTimeZone('UTC'));
-    $endDateTime   = new DateTime($end_time,   new DateTimeZone('UTC'));
-
-    // Start must be strictly in the future (UTC)
-    if ($startDateTime <= $nowUtc) {
-        $_SESSION['slot_message'] = "❌ Cannot create a slot in the past. Please pick a start time in the future (your local time).";
+    if ($startMinutes % 15 !== 0 || $endMinutes % 15 !== 0) {
+        $_SESSION['slot_message'] = "❌ Start and end times must be on a 15-minute boundary.";
         header("Location: ../slot_creating.php");
         exit;
     }
 
-    // End must be after start
-    if ($endDateTime <= $startDateTime) {
+    // Ensure duration > 0
+    if ($endLocal <= $startLocal) {
         $_SESSION['slot_message'] = "❌ End time must be after start time.";
         header("Location: ../slot_creating.php");
         exit;
     }
 
-    // ensure start/end minute are multiples of 15
-    $startMinutes = (int)$startLocal->format('i'); // minutes part
-    $endMinutes   = (int)$endLocal->format('i');
+    // Ensure start is in the future (server local)
+    $now = new DateTime();
+    if ($startLocal <= $now) {
+        $_SESSION['slot_message'] = "❌ Cannot create a slot in the past.";
+        header("Location: ../slot_creating.php");
+        exit;
+    }
 
-if ($startMinutes % 15 !== 0 || $endMinutes % 15 !== 0) {
-    $_SESSION['slot_message'] = "❌ Start and end times must be on a 15-minute boundary (e.g., 09:00, 09:15, 09:30, 09:45).";
-    header("Location: ../slot_creating.php");
-    exit;
-}
-
+    // Format times for DB
+    $start_time = $startLocal->format('Y-m-d H:i:s');
+    $end_time   = $endLocal->format('Y-m-d H:i:s');
 
     // --------------------------
-    // Insert into DB (UTC datetimes)
+    // Insert into DB (local time)
     // --------------------------
     $stmt = $pdo->prepare("
         INSERT INTO appointment_slots (
@@ -157,17 +104,10 @@ if ($startMinutes % 15 !== 0 || $endMinutes % 15 !== 0) {
 
     $_SESSION['slot_message'] = "✅ Appointment Slot Successfully Created!";
 } catch (PDOException $e) {
-    // Detect overlapping appointment slot trigger (friendly message)
-    if (strpos($e->getMessage(), 'Overlapping appointment slot') !== false
-        || strpos($e->getMessage(), 'Provider already has an overlapping appointment') !== false) {
-        $_SESSION['slot_message'] = "❌ You already have an appointment during that time. Failed to create appointment slot. Please try again!";
-    } else {
-        $_SESSION['slot_message'] = "❌ Failed to create appointment slot. Please try again!";
-        error_log("Database error (slot_creating): " . $e->getMessage());
-    }
+    $_SESSION['slot_message'] = "❌ Failed to create appointment slot. Please try again!";
+    error_log("Database error (slot_creating): " . $e->getMessage());
 } catch (Exception $e) {
-    // Other errors (e.g. timezone parsing)
-    $_SESSION['slot_message'] = "Error: " . htmlspecialchars($e->getMessage());
+    $_SESSION['slot_message'] = "Error: " . htmlspecialchars($e->getMessage() ?? '');
 }
 
 header("Location: ../slot_creating.php");
