@@ -1,0 +1,35 @@
+.cancel-button {
+  background-color: #e53935; /* main red */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 6px rgba(229, 57, 53, 0.3);
+}
+
+/* Only apply hover effects if NOT disabled */
+.cancel-button:not(:disabled):hover {
+  background-color: #d32f2f; /* darker red */
+  box-shadow: 0 4px 8px rgba(229, 57, 53, 0.4);
+}
+
+.cancel-button:not(:disabled):active {
+  background-color: #b71c1c;
+  transform: scale(0.98);
+}
+
+.cancel-button:focus {
+  outline: 2px solid #ff8a80; /* light red focus ring */
+  outline-offset: 3px;
+}
+
+/* Style disabled state */
+.cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
