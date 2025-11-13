@@ -1,3 +1,3 @@
 # CS440-CS540-Group-1-
-Website for booking appointments
-Hello
+Let's Book - Website for booking appointments
+
