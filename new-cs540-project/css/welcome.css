@@ -64,10 +64,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #ffffff;
+    background: white;
     position: relative;
     overflow: hidden;
     padding: 40px 20px;
+    z-index: 0;
 }
 
 /* Green abstract shapes */
@@ -76,7 +77,7 @@
     position: absolute;
     width: 600px;
     height: 600px;
-    background: #7CFF7C;
+    background: #7bd7f3;
     border-radius: 50%;
     top: -150px;
     left: -200px;
@@ -88,7 +89,7 @@
     position: absolute;
     width: 400px;
     height: 400px;
-    background: #4CAF50;
+    background: #e4ddba;
     border-radius: 50%;
     bottom: -150px;
     left: 200px;
@@ -104,6 +105,7 @@
     align-items: center;
     position: relative;
     z-index: 2;
+    padding: 0 40px;
 }
 
 /* IMAGE CARD */
@@ -122,15 +124,20 @@
 
 /* TEXT */
 .hero-text h1 {
-    font-size: 3rem;
+    font-size: 4rem;
     font-weight: bold;
     margin-bottom: 20px;
+    padding-left: 20px;
 }
 
 .hero-text p {
     font-size: 1.1rem;
     line-height: 1.7;
     color: #333;
+    border-radius: 20px;
+    background-color: #f0f0f5;
+    font-family: Arial, Helvetica, sans-serif;
+    padding-left: 20px;
 }
 
 /* RESPONSIVE */
@@ -182,6 +189,7 @@
 /* TEXT */
 .service-text {
     padding: 20px;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .service-text h2 {
