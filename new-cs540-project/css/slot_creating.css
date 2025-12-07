@@ -1,0 +1,182 @@
+/* ===============================
+   Create Appointment Slot page
+   Scoped so it won't affect header
+   =============================== */
+
+/* Scope typography & styling to THIS form only */
+form[action$="slot_creating.php"],
+form[action$="slot_creating.php"] * {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
+    "Noto Sans", sans-serif;
+}
+
+/* ---- Error message ---- */
+.errorMsg {
+  display: block;
+  max-width: 480px;
+  margin: 0.75rem auto 0.25rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  font-size: 0.9rem;
+}
+
+/* ---- Page title (right above our form) ---- */
+span.errorMsg + h2,
+h2 + form[action$="slot_creating.php"] {
+  text-align: center;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ---- Form card ---- */
+form[action$="slot_creating.php"] {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
+  background: #ffffff;
+  padding: 18px 16px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08),
+    0 1px 0 rgba(148, 163, 184, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- Labels ---- */
+form[action$="slot_creating.php"] label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 3px;
+  display: inline-block;
+}
+
+/* ---- Inputs & Textarea (scoped) ---- */
+form[action$="slot_creating.php"] input[type="date"],
+form[action$="slot_creating.php"] input[type="time"],
+form[action$="slot_creating.php"] textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  font-size: 0.93rem;
+  background-color: #f9fafb;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease, transform 0.08s ease;
+}
+
+/* Hook for date-only tweaks if needed */
+form[action$="slot_creating.php"] .date-input {
+  /* extra styles if you want */
+}
+
+/* Hover styles */
+form[action$="slot_creating.php"] input[type="date"]:hover,
+form[action$="slot_creating.php"] input[type="time"]:hover,
+form[action$="slot_creating.php"] textarea:hover {
+  border-color: #9ca3af;
+}
+
+/* Focus styles */
+form[action$="slot_creating.php"] input[type="date"]:focus,
+form[action$="slot_creating.php"] input[type="time"]:focus,
+form[action$="slot_creating.php"] textarea:focus {
+  border-color: #2563eb;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+  transform: translateY(-1px);
+}
+
+/* Textarea */
+form[action$="slot_creating.php"] textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ---- Submit button ---- */
+form[action$="slot_creating.php"] input[type="submit"] {
+  margin-top: 4px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s ease;
+}
+
+form[action$="slot_creating.php"] input[type="submit"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(37, 99, 235, 0.4);
+  opacity: 0.97;
+}
+
+form[action$="slot_creating.php"] input[type="submit"]:active {
+  transform: translateY(1px);
+  box-shadow: 0 7px 14px rgba(37, 99, 235, 0.25);
+}
+
+/* ===============================
+   Responsive behavior
+   =============================== */
+
+/* Mobile-first: keep current comfy layout */
+@media (max-width: 480px) {
+  .errorMsg {
+    margin-top: 0.75rem;
+  }
+
+  form[action$="slot_creating.php"] {
+    padding: 20px 16px;
+    border-radius: 14px;
+    margin-bottom: 2rem;
+  }
+
+  span.errorMsg + h2,
+  h2 + form[action$="slot_creating.php"] {
+    font-size: 1.35rem;
+  }
+}
+
+/* Laptop / larger screens: compact so page fits without scrolling */
+@media (min-width: 768px) {
+  /* Tighten spacing a bit */
+  .errorMsg {
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  span.errorMsg + h2,
+  h2 + form[action$="slot_creating.php"] {
+    margin-top: 0.5rem;
+    margin-bottom: 0.4rem;
+    font-size: 1.3rem;
+  }
+
+  form[action$="slot_creating.php"] {
+    padding: 16px 14px;
+    border-radius: 14px;
+    margin-bottom: 1rem;
+    /* Make sure the form card itself fits inside viewport */
+    max-height: calc(100vh - 170px); /* header + title + margins allowance */
+    overflow-y: auto; /* if it ever overflows, scroll only inside the card */
+  }
+
+  form[action$="slot_creating.php"] textarea {
+    min-height: 80px;
+  }
+}

@@ -1,0 +1,83 @@
+:root {
+  --green: rgb(34, 197, 94); /* main green */
+  --green-dark: rgb(22, 163, 74); /* hover green */
+  --green-darker: rgb(21, 128, 61); /* active green */
+  --green-light: rgba(34, 197, 94, 0.25);
+  --green-shadow: rgba(34, 197, 94, 0.35);
+}
+
+/* Activate Button: */
+.activate-btn {
+  background-color: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 6px var(--green-shadow);
+}
+
+/* Hover (if not disabled) */
+.activate-btn:not(:disabled):hover {
+  background-color: var(--green-dark);
+  box-shadow: 0 4px 8px rgba(34, 197, 94, 0.45);
+}
+
+/* Active click */
+.activate-btn:not(:disabled):active {
+  background-color: var(--green-darker);
+  transform: scale(0.98);
+}
+
+/* Focus ring (accessibility) */
+.activate-btn:focus {
+  outline: 2px solid var(--green-light);
+  outline-offset: 3px;
+}
+
+/* Disabled state */
+.activate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Deactivate Button: */
+.deactivate-btn {
+  background-color: #e53935; /* main red */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 6px rgba(229, 57, 53, 0.3);
+}
+
+/* Only apply hover effects if NOT disabled */
+.deactivate-btn:not(:disabled):hover {
+  background-color: #d32f2f; /* darker red */
+  box-shadow: 0 4px 8px rgba(229, 57, 53, 0.4);
+}
+
+.deactivate-btn:not(:disabled):active {
+  background-color: #b71c1c;
+  transform: scale(0.98);
+}
+
+.deactivate-btn:focus {
+  outline: 2px solid #ff8a80; /* light red focus ring */
+  outline-offset: 3px;
+}
+
+/* Style disabled state */
+.deactivate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
