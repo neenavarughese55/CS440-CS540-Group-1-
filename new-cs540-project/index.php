@@ -1,5 +1,5 @@
 <?php
-  session_start();
+  require 'include/session_check.php';
 
   // Show up all PHP errors for debugging:
   error_reporting(E_ALL);

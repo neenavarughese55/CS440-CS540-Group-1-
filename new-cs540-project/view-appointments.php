@@ -18,6 +18,33 @@
 
     <script src="./js/view-appointments.js"></script>
 </head>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("myForm");
+    const buttons = document.querySelectorAll(".cancel-button");
+
+    buttons.forEach(btn => {
+        btn.addEventListener("click", function() {
+            const row = btn.closest("tr");
+            const appointmentId = row.querySelector(".appointment_id")?.textContent.trim();
+            const slotId = row.querySelector(".slot_id")?.textContent.trim();
+            const username = row.querySelector(".booked_by")?.textContent.trim();
+
+            // Fill hidden inputs
+            document.getElementById("appointment_id").value = appointmentId || "";
+            document.getElementById("slot_id").value = slotId || "";
+            document.getElementById("username").value = username || "";
+
+            // Submit the form
+            form.submit();
+        });
+    });
+});
+</script>
+
+
 <body>
     <?php require 'include/header.php'; ?>
 

@@ -1,5 +1,7 @@
 <?php
-session_start();
+require __DIR__ . '/../include/session_check.php';
+
+
 
 // Database configuration
 $host = 'localhost';
@@ -88,6 +90,19 @@ try {
         header("Location: ../booking.php");
         exit;
     }
+
+// Enforce minimum 2-hour advance booking ---
+$minAdvance = new DateInterval('PT2H'); // 2 hours
+$deadline = (clone $now)->add($minAdvance); // now + 2h
+if ($startDt < $deadline) {
+    $pdo->rollBack();
+    $_SESSION['booking_message'] = "❌ You must book at least 2 hours before the appointment start time.";
+    header("Location: ../booking.php");
+    exit;
+}
+
+
+
 
     // 4) Check overlapping appointments
     $overlapStmt = $pdo->prepare("
