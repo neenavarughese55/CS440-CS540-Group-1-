@@ -47,11 +47,11 @@ try {
             // If the appointment is not booked by any customer yet (appointment_slot), 
             // then delete this appointment slot from the database:
 
-            // ✅ Prepare and execute a secure DELETE query
+            // Prepare and execute a secure DELETE query
             $stmt = $pdo->prepare("DELETE FROM appointment_slots WHERE id = :id");
             $stmt->execute([':id' => $slotId]);
 
-            // ✅ Confirm deletion
+            // Confirm deletion
             if ($stmt->rowCount() > 0) {
                 $_SESSION['cancel_message'] =  "Appointment successfully cancelled.";
             } else {
@@ -59,17 +59,19 @@ try {
             }
         }
     } else {
-        // If the appointment is already booked by a customer, then update its status to “Cancelled”:
-        // ✅ Use a prepared statement to prevent SQL injection
-        $stmt = $pdo->prepare("UPDATE appointments SET status = :status WHERE id = :id");
+        // If the appointment is already booked by a customer, 
+        // then update its status to “Cancelled”,
+        // then update the username who cancelled it:
+        // Use a prepared statement to prevent SQL injection
+        $stmt = $pdo->prepare("UPDATE appointments SET status = :status, updated_by = :updated_by WHERE id = :id");
         $stmt->execute([
             ':status' => 'Cancelled',
+            ':updated_by'     => $user_id,
             ':id'     => $appointmentId
         ]);
 
-        // ✅ Optional: check if any row was updated
+        // Optional: check if any row was updated
         if ($stmt->rowCount() > 0) {
-            echo "user_id: " . $_SESSION["user_id"];
             $_SESSION['cancel_message'] =  "Appointment successfully cancelled.";
 
             $email = getEmail($username);
