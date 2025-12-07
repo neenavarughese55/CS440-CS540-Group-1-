@@ -24,11 +24,12 @@
             if ($_SESSION['user_role'] != "service-provider") {
               echo " style = 'display: none;' ";
             }
-          ?>><a href="slot_creating.php">Create Slot</a></li>
+          ?>><a href="slot_creating.php">Create Slot</a>
+        </li>
         <li><a href="view-appointments.php">
           <?php
             if ($_SESSION['user_role'] == "admin") {
-              echo "View All Appointments' ";
+              echo "View All Appointments";
             } else if ($_SESSION['user_role'] == "service-provider") {
               echo "View My Appointment Slots";
             } else {
@@ -36,7 +37,14 @@
             }
           ?>
         </a></li>
-        <!-- <li><a href="setting.php">Setting</a></li> -->
+        <li><a href="report.php">Run Report</a></li>
+        <li 
+          <?php
+            if ($_SESSION['user_role'] != "admin") {
+              echo " style = 'display: none;' ";
+            }
+          ?>><a href="account_manager.php">Account Manager</a>
+        </li>
         <li><a href="backend/logout.php">Logout</a></li>
       </ul>
     </nav>
