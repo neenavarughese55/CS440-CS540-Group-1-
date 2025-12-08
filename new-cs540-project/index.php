@@ -1,155 +1,97 @@
+
 <?php
-  require 'include/session_check.php';
+    require 'include/session_check.php';
 
   // Show up all PHP errors for debugging:
-  error_reporting(E_ALL);
-  ini_set('display_errors', '1');
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
 ?>
 
+<!DOCTYPE html>
+
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title>CS 540 Project</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Appointment Booking</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <link rel="stylesheet" href="css/welcome.css">
+    </head>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    
-    <link rel="stylesheet" href="./css/index.css">
+    <body id="background">
+        <header>
+            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+                <div class="container">
+                    <a class="navbar-brand" href="Welcome.html"></a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarContent" aria-controls="navbarContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#"></a>
+                    </div>
 
-    <!-- Load jQuery from CDN -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="./js/index.js"></script>
+                    <div class="collapse navbar-collapse" id="navbarContent">
+                        <div class="navbar-nav">
+                            <a class="nav-link active" href="css/Welcome.html">Home</a>
+                            <a class="nav-link" href="backend/login.php">Log In/Register</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
 
-  </head>
+        <section class="hero">
+                <div class="hero-image-card">
+                    <img src="images/fitbeauheal.webp" alt="a logo" />
+                </div>
 
-  <body>
-    <div class="card">
-      <div class="tabs">
-        <button id="loginTab" class="active" onclick="switchPanel('login')">Login</button>
-        <button id="regTab" onclick="switchPanel('reg')">Register</button>
-      </div>
+                <div class="hero-text">
+                    <h1 class="background">Welcome</h1>
+                    <p class="background">
+                        Do not know where to find a trustworthy service from getting your nails done to examining your health or exercise your productivity, 
+                        you have come to the right place. 
+                        We offer services to handle your beauty, health and fitness with just one click away. 
+                        Explore our many options to find the right person for you to handle your specific needs with ease!
+                    </p>
+                </div>
+        </section>
 
-      <!-- Login Panel -->
-      <div id="loginPanel" class="panel active">
-        <!-- Warning message for when Login panel is active -->
-        <span class="errorMsg">
-          <?php
-            if (isset($_SESSION['message'])) {
-              echo $_SESSION['message'];
-              unset($_SESSION['message']);
-            }
-          ?>
-        </span>
+        <section class="services">
 
-        <form id="loginForm" action="./backend/login.php" method="post">
-          <input type="hidden" name="action" value="login" />
-          <div class="form-group">
-            <label>Username</label>
-            <input type="username" name="username" value="" id="username-login" required />
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" name="password" minlength="6" required />
-          </div>
-          <button type="submit">Login</button>
-        </form>
-      </div>
-      <!-- End Login Panel -->
+            <div class="service-card beauty">
+                <img src="images/beauty.jpg" alt="Beauty services">
+                    <div class="service-text">
+                        <h2>Beauty</h2>
+                        <p>Nails, hair, makeup, and wellness treatments from top providers.</p>
+                        <a href="login.php">Login/register →</a>
+                    </div>
+            </div>
 
-      <!-- Registration Panel -->
-      <div id="regPanel" class="panel">
-        <span class="errorMsg">
-          <?php
-            if (isset($_SESSION['message'])) {
-              echo $_SESSION['message'];
-              unset($_SESSION['message']);
-            }
-          ?>
-        </span>
+            <div class="service-card health">
+                <img src="images/health.webp" alt="Health services">
+                <div class="service-text">
+                    <h2>Health</h2>
+                    <p>Doctors, therapy, and wellness appointments made easy.</p>
+                    <a href="login.php">Login/register →</a>
+                </div>
+            </div>
 
-        <form id="registerForm" action="./backend/register.php" method="post">
-          <input type="hidden" name="action" value="register" />
-          <div class="form-group">
-            <label>Username</label>
-            <input type="username" name="registered-username" id="registered-username" required />
-          </div>
+            <div class="service-card fitness">
+                <img src="images/fitness.jpg" alt="Fitness services">
+                <div class="service-text">
+                    <h2>Fitness</h2>
+                    <p>Personal training, gym memberships, and group classes.</p>
+                    <a href="login.php">Login/register →</a>
+                </div>
+            </div>
 
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="registered-email" id="registered-email" />
-          </div>
+        </section>
+    </body>
 
-          <div class="form-group">
-            <label>Register As</label>
-            <select name="role" id="role">
-              <option value = "customer">Customer</option>
-              <option value = "service-provider">Service Provider</option>
-            </select>
-          </div>
-
-          <div class="form-group" id="business-name-container">
-            <label>Business Name</label>
-            <input type="text" name="business-name" id="business-name" />
-          </div>
-
-          <div class="form-group" id="category-container">
-            <label>Category</label>
-            <select name="category" id="category">
-              <?php
-                $conn = new mysqli("localhost", "root", "", "cs540");
-                if ($conn->connect_error) {
-                    die("Connection failed: " . $conn->connect_error);
-                }
-                $sql = "SELECT id, name FROM categories";
-                $result = $conn->query($sql);
-                if ($result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-                        $id = htmlspecialchars($row["id"]);
-                        $name = htmlspecialchars($row["name"]);
-                        echo "<option value=\"$id\">$name</option>";
-                    }
-                }
-                $conn->close();
-              ?>
-            </select>
-          </div>
-
-          <div class="form-group" id="qualifications-container">
-            <label>Qualifications</label>
-            <input type="file" name="qualifications" id="qualifications" />
-          </div>
-
-          <div class="form-group">
-            <label>Phone Number</label>
-            <input type="phonenumber" name="registered-phonenumber" id="registered-phonenumber" />
-          </div>
-          <div class="form-group">
-            <label>Password (≥6 characters)</label>
-            <input type="password" id="registered-password" name="registered-password" minlength="6" />
-          </div>
-          <div class="form-group">
-            <label>Confirm Password</label>
-            <input type="password" id="registered-password-2" name="registered-password-2" minlength="6"/>
-          </div>
-
-          <!-- Timezone detection -->
-          <input type="hidden" name="timezone" id="tz-input" value="UTC" />
-          <script>
-            (function() {
-              try {
-                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                if (tz) document.getElementById('tz-input').value = tz;
-              } catch (e) {
-                // leave default UTC if detection fails
-              }
-            })();
-          </script>
-          <!-- End timezone detection -->
-
-          <button type="submit" id="sub-btn">Create Account</button>
-        </form>
-      </div>
-      <!-- End Registration Panel -->
-    </div>
-  </body>
 </html>

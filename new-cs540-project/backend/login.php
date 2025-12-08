@@ -49,11 +49,11 @@ require __DIR__ . '/../include/session_check.php';
 
             echo "✅ Login successful!";
             $_SESSION['message'] = "Login Successfully!";
-            header("Location: ../homepage.php");
+            header("Location: ..homepage.php");
             exit;
         } else {
             $_SESSION['message'] = "Invalid username or password.";
-            header("Location: ../index.php");
+            header("Location: ..index.php");
             exit;
         }
     

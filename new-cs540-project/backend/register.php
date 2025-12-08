@@ -19,7 +19,7 @@ if (!in_array($timezone, timezone_identifiers_list())) {
 // Basic validation (you can expand as needed)
 if (empty($email) || empty($pwd) || empty($username)) {
     $_SESSION['message'] = 'Please provide username, email and password.';
-    header("Location: ../index.php");
+    header("Location: ..index.php");
     exit;
 }
 
@@ -40,7 +40,7 @@ try {
     $stmt->execute([':email' => $email]);
     if ($stmt->fetch()) {
         $_SESSION['message'] = "Email already registered.";
-        header("Location: ../index.php");
+        header("Location: ..index.php");
         exit;
     }
 
@@ -85,6 +85,6 @@ try {
     $_SESSION['message'] = "Database error: " . htmlspecialchars($e->getMessage());
 }
 
-header("Location: ../index.php");
+header("Location: ..index.php");
 exit;
 ?>

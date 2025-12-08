@@ -69,7 +69,7 @@
                 <div class="service-text">
                     <h2>Health</h2>
                     <p>Doctors, therapy, and wellness appointments made easy.</p>
-                    <a href="login.php">Login/register →</a>
+                    <a href="backend/login.php">Login/register →</a>
                 </div>
             </div>
 
@@ -78,7 +78,7 @@
                 <div class="service-text">
                     <h2>Fitness</h2>
                     <p>Personal training, gym memberships, and group classes.</p>
-                    <a href="login.php">Login/register →</a>
+                    <a href="backend/login.php">Login/register →</a>
                 </div>
             </div>
 

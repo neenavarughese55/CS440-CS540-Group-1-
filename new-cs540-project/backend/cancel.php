@@ -18,7 +18,7 @@ $username = trim($_POST['username'] ?? '');
 // Basic checks
 if (empty($user_id)) {
     $_SESSION['booking_message'] = "❌ You must be logged in to cancel an appointment.";
-    header("Location: ../booking.php");
+    header("Location: ..booking.php");
     exit;
 }
 
@@ -184,7 +184,7 @@ function getEmail($username) {
 function getAppointmentEmailContent($appointmentID, $pdo) {
     // Prepare SQL query
     $sql = "SELECT a.id, a.provider_id, pp.business_name, c.id as category_id, 
-                   c.name as category_name, a.notes, start_time, end_time 
+            c.name as category_name, a.notes, start_time, end_time 
             FROM appointments a
             LEFT JOIN provider_profiles pp ON a.provider_id = pp.id
             LEFT JOIN categories c ON a.category_id = c.id
@@ -218,6 +218,6 @@ function getAppointmentEmailContent($appointmentID, $pdo) {
 }
 
 
-header("Location: ../view-appointments.php");
+header("Location: ..view-appointments.php");
 exit;
 ?>

@@ -19,12 +19,12 @@ $notes = trim($_POST['notes'] ?? '');
 // Basic checks
 if (empty($user_id)) {
     $_SESSION['booking_message'] = "❌ You must be logged in to book an appointment.";
-    header("Location: ../booking.php");
+    header("Location: ..booking.php");
     exit;
 }
 if ($slot_id <= 0) {
     $_SESSION['booking_message'] = "❌ Invalid slot selected.";
-    header("Location: ../booking.php");
+    header("Location: ..booking.php");
     exit;
 }
 
@@ -55,19 +55,19 @@ try {
     if (!$slot) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Slot not found.";
-        header("Location: ../booking.php");
+        header("Location: ..booking.php");
         exit;
     }
     if ((int)$slot['is_active'] !== 1) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ This slot is not active.";
-        header("Location: ../booking.php");
+        header("Location: ..booking.php");
         exit;
     }
     if (empty($slot['start_time']) || empty($slot['end_time'])) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Slot has invalid times.";
-        header("Location: ../booking.php");
+        header("Location: ..booking.php");
         exit;
     }
 
@@ -78,7 +78,7 @@ try {
     } catch (Exception $ex) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Slot has invalid datetime format.";
-        header("Location: ../booking.php");
+        header("Location: ..booking.php");
         exit;
     }
 
@@ -87,7 +87,7 @@ try {
     if ($startDt <= $now) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Cannot book a slot in the past.";
-        header("Location: ../booking.php");
+        header("Location: ..booking.php");
         exit;
     }
 
@@ -97,7 +97,7 @@ $deadline = (clone $now)->add($minAdvance); // now + 2h
 if ($startDt < $deadline) {
     $pdo->rollBack();
     $_SESSION['booking_message'] = "❌ You must book at least 2 hours before the appointment start time.";
-    header("Location: ../booking.php");
+    header("Location: ..booking.php");
     exit;
 }
 
@@ -108,8 +108,8 @@ if ($startDt < $deadline) {
     $overlapStmt = $pdo->prepare("
         SELECT 1 FROM appointments
         WHERE user_id = :user_id
-          AND :slot_start < end_time
-          AND :slot_end > start_time
+        AND :slot_start < end_time
+        AND :slot_end > start_time
         LIMIT 1
     ");
     $overlapStmt->execute([
@@ -120,7 +120,7 @@ if ($startDt < $deadline) {
     if ($overlapStmt->fetch()) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ You already have an appointment during that time. Please choose another slot.";
-        header("Location: ../booking.php");
+        header("Location: ..booking.php");
         exit;
     }
 
@@ -132,7 +132,7 @@ if ($startDt < $deadline) {
     if ($count >= $capacity) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ This slot is already full.";
-        header("Location: ../booking.php");
+        header("Location: ..booking.php");
         exit;
     }
 
@@ -170,6 +170,6 @@ if ($startDt < $deadline) {
     $_SESSION['booking_message'] = "Error: " . htmlspecialchars($e->getMessage() ?? '');
 }
 
-header("Location: ../booking.php");
+header("Location: ..booking.php");
 exit;
 ?>
