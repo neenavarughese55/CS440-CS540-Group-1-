@@ -7,7 +7,6 @@
 
 ?>
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,7 +17,6 @@
 
     <script src="./js/view-appointments.js"></script>
 </head>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -44,7 +42,6 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-
 <body>
     <?php require 'include/header.php'; ?>
 
@@ -61,61 +58,55 @@ document.addEventListener("DOMContentLoaded", function() {
             <label>Category</label>
             <select name="category" id="category">
               <?php
-                // Database connection
+                // Database connection for categories dropdown
                 $conn = new mysqli("localhost", "root", "", "cs540");
-
-                // Check connection
                 if ($conn->connect_error) {
                     die("Connection failed: " . $conn->connect_error);
                 }
-
-                // Query provider profiles
                 $sql = "SELECT id, name FROM categories";
                 $result = $conn->query($sql);
-
-                // Populate dropdown
-                if ($result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-                        $id = htmlspecialchars($row["id"]);
-                        $name = htmlspecialchars($row["name"]);
+                if ($result && $result->num_rows > 0) {
+                    while ($r = $result->fetch_assoc()) {
+                        $id = htmlspecialchars($r["id"]);
+                        $name = htmlspecialchars($r["name"]);
                         echo "<option value=\"$id\">$name</option>";
                     }
                 }
-
                 $conn->close();
               ?>
             </select>
           </div><br><br>
 
-    <!-- <h4>Select Available Spots:</h4> -->
-
     <form id="myForm" method="post" action="./backend/cancel.php">
         <div class='table-wrapper' style='display: block; margin: 0 auto; width: 90%; text-align: left;'>
         <?php
             $conn = new mysqli("localhost", "root", "", "cs540");
-
             if ($conn->connect_error) {
                 die("Connection failed: " . $conn->connect_error);
             }
 
             function formatDateTime($value) {
                 if (empty($value)) {
-                    return ""; // or return null;
+                    return "";
                 }
-                return (new DateTime($value))->format("Y-m-d h:i A");
+                try {
+                    return (new DateTime($value))->format("Y-m-d h:i A");
+                } catch (Exception $e) {
+                    return htmlspecialchars($value);
+                }
             }
 
+            // server-local now
+            $now = new DateTime();
 
             if (isset($_SESSION['user_role'])) {
                 $user_role = $_SESSION['user_role'];
 
-                // If the user is Service Provider:
-                // We do not need "Provider Name", "Category" columns:
+                // SERVICE PROVIDER view
                 if ($user_role == "service-provider") {
                     $provider_profiles_id_stmt = "";
-
                     if (isset($_SESSION['provider_profiles_id'])) {
-                        $provider_profiles_id = $_SESSION['provider_profiles_id'];
+                        $provider_profiles_id = (int)$_SESSION['provider_profiles_id'];
                         $provider_profiles_id_stmt = " AND asl.provider_id = " . $provider_profiles_id;
                     }
 
@@ -126,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             LEFT JOIN `users` u ON a.user_id = u.id WHERE TRUE " . $provider_profiles_id_stmt;
                     $result = $conn->query($sql);
 
-                    if ($result->num_rows > 0) {
+                    if ($result && $result->num_rows > 0) {
                         echo "<table border='1' cellpadding='8' cellspacing='0'>";
                         echo "<thead>
                                 <tr>
@@ -143,43 +134,61 @@ document.addEventListener("DOMContentLoaded", function() {
                         while ($row = $result->fetch_assoc()) {
                             $slotId = htmlspecialchars($row["id"] ?? '', ENT_QUOTES, 'UTF-8');
                             $notes = htmlspecialchars($row["notes"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $start = htmlspecialchars($row["start_time"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $end = htmlspecialchars($row["end_time"] ?? '', ENT_QUOTES, 'UTF-8');
+                            $startRaw = $row["start_time"] ?? '';
+                            $endRaw = $row["end_time"] ?? '';
+                            $start = formatDateTime($startRaw);
+                            $end = formatDateTime($endRaw);
                             $username = htmlspecialchars($row["username"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $status = htmlspecialchars($row["status"] ?? '', ENT_QUOTES, 'UTF-8');
+                            $statusRaw = $row["status"] ?? '';
                             $appointmentID = htmlspecialchars($row["appointment_id"] ?? '', ENT_QUOTES, 'UTF-8');
 
-                            $style = "";
+                            // decide whether start is in the past
+                            $isPast = false;
+                            if (!empty($startRaw)) {
+                                try {
+                                    $startDt = new DateTime($startRaw);
+                                    if ($startDt <= $now) $isPast = true;
+                                } catch (Exception $e) {
+                                    // ignore parse errors
+                                }
+                            }
 
-                            if ($status == "booked") {
-                                $status = "Booked";
-                            } 
-                            
-                            if ($status == "Cancelled") {
-                                $style = " style = 'color: red;' ";
-                                $disabled = " disabled ";
+                            // determine status text and color for provider:
+                            // Cancelled -> red
+                            // Passed -> grey
+                            // Booked (future) -> green
+                            // Active (no booking) -> blue
+                            $low = strtolower(trim((string)$statusRaw));
+                            if ($low === "cancelled") {
+                                $statusText = "Cancelled";
+                                $rowStyle = " style='color: red;'";
+                            } elseif ($isPast) {
+                                $statusText = "Passed";
+                                $rowStyle = " style='color: grey;'";
+                            } elseif ($low === "booked") {
+                                $statusText = "Booked";
+                                $rowStyle = " style='color: green;'";
                             } else {
-                                $disabled = "";
+                                $statusText = empty(trim($statusRaw)) ? "Active" : $statusRaw;
+                                $rowStyle = " style='color: blue;'";
                             }
 
-                            if (empty($status)) {
-                                $status = "Active";
-                                $style = " style = 'color: green;' ";
+                            // Only show cancel when appointment not passed and not cancelled
+                            $actionHtml = "";
+                            if (!$isPast && strtolower($statusText) !== "cancelled") {
+                                $actionHtml = "<button type='button' class='cancel-button'>Cancel</button>";
                             }
 
-                            $start = formatDateTime($start);
-                            $end = formatDateTime($end);
-                            
-                            echo "<tr $style>
+                            echo "<tr $rowStyle>
                                     <td class='slot_id'>$slotId</td>
                                     <td class='notes'>$notes</td>
                                     <td class='start_time'>$start</td>
                                     <td class='end_time'>$end</td>
-                                    <td class='status'>$status</td>
+                                    <td class='status'>$statusText</td>
                                     <td class='booked_by'>$username</td>
-                                    <td><button type='button' class='cancel-button' $disabled>Cancel</button></td>
-                                    <td style = 'display:none;' class='appointment_id'>$appointmentID</td>
-                                </tr>";
+                                    <td>$actionHtml</td>
+                                    <td style='display:none;' class='appointment_id'>$appointmentID</td>
+                                  </tr>";
                         }
 
                         echo "</tbody></table>";
@@ -188,27 +197,21 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
 
                     $conn->close();
-                } // End if the user is Service Provider
-                
-                // If the user is Customer:
+                }
+                // CUSTOMER view
                 else if ($user_role == "customer") {
-                    $userID = "";
-                    if (isset($_SESSION['user_id'])) {
-                        $userID = $_SESSION['user_id'];
-                    }
+                    $userID = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 
-                    $sql = "SELECT a.id, a.provider_id, pp.business_name, c.id as category_id, 
-                        c.name as category_name, a.notes, start_time, end_time, a.status, a.updated_by
+                    $sql = "SELECT a.id, a.slot_id, a.provider_id, pp.business_name, c.id as category_id, 
+                        c.name as category_name, a.notes, a.start_time, a.end_time, a.status, a.updated_by
                         FROM `appointments` a
                         LEFT JOIN provider_profiles pp ON a.provider_id = pp.id
                         LEFT JOIN categories c ON a.category_id = c.id
                         WHERE a.user_id = '". $userID. "'";
 
-
                     $result = $conn->query($sql);
 
-                    if ($result->num_rows > 0) {
-                        // echo "<div class='table-wrapper' style='display: block; margin: 0 auto; width: 90%;'>";
+                    if ($result && $result->num_rows > 0) {
                         echo "<table border='1' cellpadding='8' cellspacing='0'>";
                         echo "<thead>
                                 <tr>
@@ -220,51 +223,82 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <th>End Time</th>
                                     <th>Status</th>
                                     <th>Status Updated By</th>
+                                    <th>Action</th>
                                 </tr>
                                 </thead>";
                         echo "<tbody>";
 
                         while ($row = $result->fetch_assoc()) {
-                            $slotId        = htmlspecialchars($row["id"] ?? '', ENT_QUOTES, 'UTF-8');
+                            // prepare variables
+                            $appointmentID = htmlspecialchars($row["id"] ?? '', ENT_QUOTES, 'UTF-8');
+                            $slotIdHidden  = htmlspecialchars($row["slot_id"] ?? '', ENT_QUOTES, 'UTF-8');
                             $providerId    = htmlspecialchars($row["provider_id"] ?? '', ENT_QUOTES, 'UTF-8');
                             $business_name = htmlspecialchars($row["business_name"] ?? '', ENT_QUOTES, 'UTF-8');
                             $category_name = htmlspecialchars($row["category_name"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $notes         = htmlspecialchars($row["notes"] ?? '', ENT_QUOTES, 'UTF-8');
+                            $notes = htmlspecialchars($row["notes"] ?? '', ENT_QUOTES, 'UTF-8');
                             $category_id   = htmlspecialchars($row["category_id"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $start         = htmlspecialchars($row["start_time"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $end           = htmlspecialchars($row["end_time"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $status        = htmlspecialchars($row["status"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $updated_by    = htmlspecialchars($row["updated_by"] ?? '', ENT_QUOTES, 'UTF-8');
+                            $startRaw = $row["start_time"] ?? '';
+                            $endRaw = $row["end_time"] ?? '';
+                            $start = formatDateTime($startRaw);
+                            $end = formatDateTime($endRaw);
+                            $statusRaw = $row["status"] ?? '';
+                            $updated_by = htmlspecialchars($row["updated_by"] ?? '', ENT_QUOTES, 'UTF-8');
+                            $bookedByUser = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');
 
-
-                            $style = "";
-
-                            if ($status == "booked") {
-                                $status = "Booked";
-                                $style = " style = 'color: green;' ";
-                            } else if ($status == "Cancelled") {
-                                $style = " style = 'color: red;' ";
+                            // decide if start is in the past
+                            $isPast = false;
+                            if (!empty($startRaw)) {
+                                try {
+                                    $startDt = new DateTime($startRaw);
+                                    if ($startDt <= $now) $isPast = true;
+                                } catch (Exception $e) {
+                                    // ignore parse errors
+                                }
                             }
 
-                            if (empty($status)) {
-                                $status = "Active";
+                            // determine status text and color for customer:
+                            // Cancelled -> red
+                            // Passed -> grey
+                            // Booked (future) -> green
+                            // Active/other -> blue (fallback)
+                            $low = strtolower(trim((string)$statusRaw));
+                            if ($low === "cancelled") {
+                                $statusText = "Cancelled";
+                                $rowStyle = " style='color: red;'";
+                            } elseif ($isPast) {
+                                $statusText = "Passed";
+                                $rowStyle = " style='color: grey;'";
+                            } elseif ($low === "booked") {
+                                $statusText = "Booked";
+                                $rowStyle = " style='color: green;'";
+                            } else {
+                                $statusText = empty(trim($statusRaw)) ? "Active" : $statusRaw;
+                                $rowStyle = " style='color: blue;'";
                             }
 
-                            $start = formatDateTime($start);
-                            $end = formatDateTime($end);
+                            // Only render cancel button when NOT past and not cancelled
+                            $actionHtml = "";
+                            if (!$isPast && strtolower($statusText) !== "cancelled") {
+                                $actionHtml = "<button type='button' class='cancel-button'>Cancel</button>";
+                            }
 
-                            echo "<tr $style>
-                                    <td class='slot_id'>$slotId</td>
-                                    <td style = 'display: none;' class='provider_id'>$providerId</td>
+                            // output row
+                            echo "<tr $rowStyle>
+                                    <td class='slot_id'>$slotIdHidden</td>
+                                    <td style='display:none;' class='provider_id'>$providerId</td>
                                     <td class='business_name'>$business_name</td>
-                                    <td style = 'display: none;' class='category_id'>$category_id</td>
+                                    <td style='display:none;' class='category_id'>$category_id</td>
                                     <td class='category_name'>$category_name</td>
                                     <td class='notes'>$notes</td>
                                     <td class='start_time'>$start</td>
                                     <td class='end_time'>$end</td>
-                                    <td class='status'>$status</td>
+                                    <td class='status'>$statusText</td>
                                     <td class='status_updated_by'>$updated_by</td>
-                                </tr>";
+                                    <td>$actionHtml</td>
+                                    <td style='display:none;' class='appointment_id'>$appointmentID</td>
+                                    <td style='display:none;' class='slot_id'>$slotIdHidden</td>
+                                    <td style='display:none;' class='booked_by'>$bookedByUser</td>
+                                  </tr>";
                         }
 
                         echo "</tbody></table>";
@@ -274,10 +308,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                     $conn->close();
                 }
-                // End if the user is Customer
-
-                // If the user is Admin:
-                // Show All Appointments:
+                // ADMIN view
                 else if ($user_role == "admin") {
                     $sql = "SELECT asl.id, asl.start_time, asl.end_time, asl.created_at, asl.updated_at, asl.notes,
                             u.username as username, a.status
@@ -286,21 +317,17 @@ document.addEventListener("DOMContentLoaded", function() {
                             LEFT JOIN `users` u ON a.user_id = u.id";
                     $result = $conn->query($sql);
 
-                    if ($result->num_rows > 0) {
+                    if ($result && $result->num_rows > 0) {
                         $rows = [];
                         while ($row = $result->fetch_assoc()) {
                             $rows[] = $row;
                         }
 
-                        // "Appointments booked by" dropdown:
                         echo "<h3>Appointments booked by</h3>";
 
-                        // Build Distinct usernames:
                         $usernames = [];
-
-                        foreach ($rows as $row) {
-                            $u = trim($row["username"] ?? '');
-
+                        foreach ($rows as $r) {
+                            $u = trim($r["username"] ?? '');
                             if ($u !== '' && !in_array($u, $usernames, true)) {
                                 $usernames[] = $u;
                             }
@@ -308,7 +335,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
                         echo "<select class='modern-select' id='booked-by-username'>";
                         echo "<option value='any'>-Any User-</option>";
-
                         foreach ($usernames as $username) {
                             $safe = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
                             echo "<option value='$safe'>$safe</option>";
@@ -316,9 +342,6 @@ document.addEventListener("DOMContentLoaded", function() {
                         echo "</select>";
 
                         echo "<br>";
-                        //
-
-                        
 
                         echo "<table id='table' border='1' cellpadding='8' cellspacing='0'>";
                         echo "<thead>
@@ -335,33 +358,28 @@ document.addEventListener("DOMContentLoaded", function() {
                         foreach ($rows as $row) {
                             $slotId = htmlspecialchars($row["id"] ?? '', ENT_QUOTES, 'UTF-8');
                             $notes = htmlspecialchars($row["notes"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $start = htmlspecialchars($row["start_time"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $end = htmlspecialchars($row["end_time"] ?? '', ENT_QUOTES, 'UTF-8');
+                            $start = formatDateTime($row["start_time"] ?? '');
+                            $end = formatDateTime($row["end_time"] ?? '');
                             $username = htmlspecialchars($row["username"] ?? '', ENT_QUOTES, 'UTF-8');
-                            $status = htmlspecialchars($row["status"] ?? '', ENT_QUOTES, 'UTF-8');
+                            $statusRaw = $row["status"] ?? '';
 
-                            $style = "";
-
-                            if ($status == "booked") {
-                                $status = "Booked";
-                                $style = " style = 'color: green;' ";
-                            } else if ($status == "Cancelled") {
-                                $style = " style = 'color: red;' ";
+                            if (strtolower($statusRaw) === "booked") {
+                                $statusText = "Booked";
+                                $style = " style='color: green;'";
+                            } elseif (strtolower($statusRaw) === "cancelled") {
+                                $statusText = "Cancelled";
+                                $style = " style='color: red;'";
+                            } else {
+                                $statusText = empty(trim($statusRaw)) ? "Active" : $statusRaw;
+                                $style = " style='color: blue;'";
                             }
-
-                            if (empty($status)) {
-                                $status = "Active";
-                            }
-
-                            $start = formatDateTime($start);
-                            $end = formatDateTime($end);
 
                             echo "<tr $style>
                                     <td class='slot_id'>$slotId</td>
                                     <td class='notes'>$notes</td>
                                     <td class='start_time'>$start</td>
                                     <td class='end_time'>$end</td>
-                                    <td class='status'>$status</td>
+                                    <td class='status'>$statusText</td>
                                     <td class='booked_by'>$username</td>
                                 </tr>";
                         }
@@ -372,11 +390,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
 
                     $conn->close();
-                } // End if the user is Admin
-            }
-            
+                } // end roles
+            } // end if user_role
         ?>
-        </div> 
+        </div>
         <!-- End "table-wrapper" class -->
 
         <input type="hidden" name="appointment_id" id="appointment_id">
@@ -386,5 +403,3 @@ document.addEventListener("DOMContentLoaded", function() {
     </form>
 </body>
 </html>
-
-

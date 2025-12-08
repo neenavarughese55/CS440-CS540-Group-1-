@@ -17,7 +17,7 @@ $username = trim($_POST['username'] ?? '');
 
 // Basic checks
 if (empty($user_id)) {
-    $_SESSION['booking_message'] = "❌ You must be logged in to book an appointment.";
+    $_SESSION['booking_message'] = "❌ You must be logged in to cancel an appointment.";
     header("Location: ../booking.php");
     exit;
 }
