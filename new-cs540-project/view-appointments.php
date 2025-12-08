@@ -139,7 +139,10 @@ if (toggle) {
                             u.username, a.status, a.id as appointment_id
                             FROM `appointment_slots` asl 
                             LEFT JOIN `appointments` a ON asl.id = a.slot_id
-                            LEFT JOIN `users` u ON a.user_id = u.id WHERE TRUE " . $provider_profiles_id_stmt;
+                            LEFT JOIN `users` u ON a.user_id = u.id 
+			    WHERE TRUE " . $provider_profiles_id_stmt . "
+			    ORDER BY asl.start_time DESC";
+
                     $result = $conn->query($sql);
 
                     if ($result && $result->num_rows > 0) {
@@ -235,7 +238,8 @@ if (toggle) {
                         FROM `appointments` a
                         LEFT JOIN provider_profiles pp ON a.provider_id = pp.id
                         LEFT JOIN categories c ON a.category_id = c.id
-                        WHERE a.user_id = '". $userID. "'";
+                        WHERE a.user_id = '". $userID. "'
+			ORDER BY a.start_time DESC";
 
                     $result = $conn->query($sql);
 
@@ -345,7 +349,9 @@ if (toggle) {
                             u.username as username, a.status
                             FROM `appointment_slots` asl 
                             LEFT JOIN `appointments` a ON asl.id = a.slot_id
-                            LEFT JOIN `users` u ON a.user_id = u.id";
+                            LEFT JOIN `users` u ON a.user_id = u.id
+			    ORDER BY asl.start_time DESC";
+
                     $result = $conn->query($sql);
 
                     if ($result && $result->num_rows > 0) {
