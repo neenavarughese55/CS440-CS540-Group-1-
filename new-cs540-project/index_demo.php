@@ -6,6 +6,7 @@
   ini_set('display_errors', '1');
 ?>
 
+
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,9 +19,10 @@
 
     <!-- Load jQuery from CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="./js/file.js"></script>
+    <script src="./js/index.js"></script>
 
   </head>
+
 
   <body>
     <div class="card">
@@ -153,3 +155,8 @@
     </div>
   </body>
 </html>
+
+<?php
+  header("Location: index.php");
+  exit();
+?>
