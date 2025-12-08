@@ -16,6 +16,13 @@
     <link rel="stylesheet" href="./css/header.css">
 
     <script src="./js/view-appointments.js"></script>
+
+    <style>
+        /* passed appointments hidden by default */
+        .passed-row { display: none; }
+        /* optional small spacing for the dropdown */
+        .show-passed-container { margin: 12px 0; text-align: left; width: 90%; margin-left: auto; margin-right: auto; }
+    </style>
 </head>
 
 <script>
@@ -39,6 +46,23 @@ document.addEventListener("DOMContentLoaded", function() {
             form.submit();
         });
     });
+
+// Toggle passed rows using dropdown
+const toggle = document.getElementById('showPassed');
+if (toggle) {
+    // init based on current value (in case it's not "hide")
+    const initShow = toggle.value === 'show';
+    document.querySelectorAll('.passed-row').forEach(r => r.style.display = initShow ? 'table-row' : 'none');
+
+    toggle.addEventListener('change', function() {
+        const passed = document.querySelectorAll('.passed-row');
+        if (this.value === 'show') {
+            passed.forEach(r => r.style.display = 'table-row'); // use table-row for <tr>
+        } else {
+            passed.forEach(r => r.style.display = 'none');
+        }
+    });
+}
 });
 </script>
 
@@ -55,27 +79,28 @@ document.addEventListener("DOMContentLoaded", function() {
     </span>
 
     <div class="form-group" id="category-container" style="display: none;">
-            <label>Category</label>
-            <select name="category" id="category">
-              <?php
-                // Database connection for categories dropdown
-                $conn = new mysqli("localhost", "root", "", "cs540");
-                if ($conn->connect_error) {
-                    die("Connection failed: " . $conn->connect_error);
+        <label>Category</label>
+        <select name="category" id="category">
+          <?php
+            // Database connection for categories dropdown
+            $conn = new mysqli("localhost", "root", "", "cs540");
+            if ($conn->connect_error) {
+                die("Connection failed: " . $conn->connect_error);
+            }
+            $sql = "SELECT id, name FROM categories";
+            $result = $conn->query($sql);
+            if ($result && $result->num_rows > 0) {
+                while ($r = $result->fetch_assoc()) {
+                    $id = htmlspecialchars($r["id"]);
+                    $name = htmlspecialchars($r["name"]);
+                    echo "<option value=\"$id\">$name</option>";
                 }
-                $sql = "SELECT id, name FROM categories";
-                $result = $conn->query($sql);
-                if ($result && $result->num_rows > 0) {
-                    while ($r = $result->fetch_assoc()) {
-                        $id = htmlspecialchars($r["id"]);
-                        $name = htmlspecialchars($r["name"]);
-                        echo "<option value=\"$id\">$name</option>";
-                    }
-                }
-                $conn->close();
-              ?>
-            </select>
-          </div><br><br>
+            }
+            $conn->close();
+          ?>
+        </select>
+    </div>
+    <br>
 
     <form id="myForm" method="post" action="./backend/cancel.php">
         <div class='table-wrapper' style='display: block; margin: 0 auto; width: 90%; text-align: left;'>
@@ -179,7 +204,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                 $actionHtml = "<button type='button' class='cancel-button'>Cancel</button>";
                             }
 
-                            echo "<tr $rowStyle>
+                            // add passed-row class if passed
+                            $rowClass = $isPast ? "passed-row" : "";
+
+                            echo "<tr class='$rowClass' $rowStyle>
                                     <td class='slot_id'>$slotId</td>
                                     <td class='notes'>$notes</td>
                                     <td class='start_time'>$start</td>
@@ -282,8 +310,11 @@ document.addEventListener("DOMContentLoaded", function() {
                                 $actionHtml = "<button type='button' class='cancel-button'>Cancel</button>";
                             }
 
+                            // add passed-row class if passed
+                            $rowClass = $isPast ? "passed-row" : "";
+
                             // output row
-                            echo "<tr $rowStyle>
+                            echo "<tr class='$rowClass' $rowStyle>
                                     <td class='slot_id'>$slotIdHidden</td>
                                     <td style='display:none;' class='provider_id'>$providerId</td>
                                     <td class='business_name'>$business_name</td>
@@ -395,6 +426,15 @@ document.addEventListener("DOMContentLoaded", function() {
         ?>
         </div>
         <!-- End "table-wrapper" class -->
+
+        <!-- Dropdown to show/hide passed appointments (hidden by default) -->
+        <div class="show-passed-container">
+            <label for="showPassed">Show passed appointments: </label>
+            <select id="showPassed" name="showPassed">
+                <option value="hide" selected>Hide passed</option>
+                <option value="show">Show passed</option>
+            </select>
+        </div>
 
         <input type="hidden" name="appointment_id" id="appointment_id">
         <input type="hidden" name="slot_id" id="slot_id">
