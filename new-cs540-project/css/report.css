@@ -1,0 +1,76 @@
+:root {
+  --green: rgb(34, 197, 94); /* main green */
+  --green-dark: rgb(22, 163, 74); /* hover green */
+  --green-darker: rgb(21, 128, 61); /* active green */
+  --green-light: rgba(34, 197, 94, 0.25);
+  --green-shadow: rgba(34, 197, 94, 0.35);
+}
+
+/* Error message stays red (industry standard) */
+.errorMsg {
+  float: right;
+  font-weight: bold;
+  font-size: 12pt;
+  color: red;
+  margin-left: 10px;
+}
+
+body {
+  text-align: center;
+}
+
+/* Table Styles */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+thead {
+  background-color: #f2f2f2;
+}
+
+/* "Run Report" Button (Green Theme) */
+.run-btn {
+  background-color: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 6px var(--green-shadow);
+}
+
+/* Hover (if not disabled) */
+.run-btn:not(:disabled):hover {
+  background-color: var(--green-dark);
+  box-shadow: 0 4px 8px rgba(34, 197, 94, 0.45);
+}
+
+/* Active click */
+.run-btn:not(:disabled):active {
+  background-color: var(--green-darker);
+  transform: scale(0.98);
+}
+
+/* Focus ring (accessibility) */
+.run-btn:focus {
+  outline: 2px solid var(--green-light);
+  outline-offset: 3px;
+}
+
+/* Disabled state */
+.run-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}

@@ -1,6 +1,6 @@
 
 <?php
-    session_start();
+    require 'include/session_check.php';
 ?>
 
 <html lang="en">

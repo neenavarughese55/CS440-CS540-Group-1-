@@ -1,5 +1,5 @@
 <?php
-  session_start();
+  require 'include/session_check.php';
 ?>
 
 <html lang="en">
@@ -8,6 +8,7 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <title>Login Successful</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/header.css">
   <link rel="stylesheet" href="./css/homepage.css">
 </head>
 

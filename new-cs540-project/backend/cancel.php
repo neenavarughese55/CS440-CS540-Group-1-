@@ -1,6 +1,5 @@
 <?php
-session_start();
-
+require __DIR__ . '/../include/session_check.php';
 
 // Database configuration
 $host = 'localhost';
@@ -18,7 +17,7 @@ $username = trim($_POST['username'] ?? '');
 
 // Basic checks
 if (empty($user_id)) {
-    $_SESSION['booking_message'] = "❌ You must be logged in to book an appointment.";
+    $_SESSION['booking_message'] = "❌ You must be logged in to cancel an appointment.";
     header("Location: ../booking.php");
     exit;
 }
@@ -42,43 +41,100 @@ try {
     $slotId = $_POST['slot_id'] ?? null;
     $_SESSION['cancel_message'] =  "Unable to cancel.";
 
+    /* --- START: minimal insertion implementing cancellation windows & auth --- */
     if (empty($appointmentId) || !ctype_digit($appointmentId)) {
+        // No appointment id -> attempt to delete an unbooked slot (only provider owner can delete)
         if (!empty($slotId)) {
-            // If the appointment is not booked by any customer yet (appointment_slot), 
-            // then delete this appointment slot from the database:
+            // verify slot exists and belongs to provider in session
+            $slotStmt = $pdo->prepare("SELECT provider_id FROM appointment_slots WHERE id = :id LIMIT 1");
+            $slotStmt->execute([':id' => $slotId]);
+            $slotRow = $slotStmt->fetch();
 
-            // ✅ Prepare and execute a secure DELETE query
-            $stmt = $pdo->prepare("DELETE FROM appointment_slots WHERE id = :id");
-            $stmt->execute([':id' => $slotId]);
-
-            // ✅ Confirm deletion
-            if ($stmt->rowCount() > 0) {
-                $_SESSION['cancel_message'] =  "Appointment successfully cancelled.";
+            if (!$slotRow) {
+                $_SESSION['cancel_message'] = "Unable to cancel: slot not found.";
             } else {
-                $_SESSION['cancel_message'] =  "Unable to cancel.";
+                $provider_profiles_id = $_SESSION['provider_profiles_id'] ?? null;
+
+                // ensure no appointment is already booked for this slot
+                $countStmt = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE slot_id = :slot_id");
+                $countStmt->execute([':slot_id' => $slotId]);
+                $count = (int)$countStmt->fetchColumn();
+
+                if ($count > 0) {
+                    $_SESSION['cancel_message'] = "❌ Cannot delete slot: there is already a booked appointment.";
+                } elseif ($provider_profiles_id === null || $provider_profiles_id != $slotRow['provider_id']) {
+                    $_SESSION['cancel_message'] = "❌ Only the provider who owns this slot can delete it.";
+                } else {
+                    $del = $pdo->prepare("DELETE FROM appointment_slots WHERE id = :id");
+                    $del->execute([':id' => $slotId]);
+                    if ($del->rowCount() > 0) {
+                        $_SESSION['cancel_message'] = "✅ Appointment slot successfully deleted.";
+                    } else {
+                        $_SESSION['cancel_message'] = "Unable to cancel.";
+                    }
+                }
             }
         }
     } else {
-        // If the appointment is already booked by a customer, then update its status to “Cancelled”:
-        // ✅ Use a prepared statement to prevent SQL injection
-        $stmt = $pdo->prepare("UPDATE appointments SET status = :status WHERE id = :id");
-        $stmt->execute([
-            ':status' => 'Cancelled',
-            ':id'     => $appointmentId
-        ]);
+        // appointmentId provided -> attempt to cancel booked appointment
+        $apptStmt = $pdo->prepare("
+            SELECT id, user_id AS customer_user_id, provider_id, start_time, status
+            FROM appointments
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $apptStmt->execute([':id' => $appointmentId]);
+        $appt = $apptStmt->fetch();
 
-        // ✅ Optional: check if any row was updated
-        if ($stmt->rowCount() > 0) {
-            echo "user_id: " . $_SESSION["user_id"];
-            $_SESSION['cancel_message'] =  "Appointment successfully cancelled.";
-
-            $email = getEmail($username);
-            $content = getAppointmentEmailContent($appointmentId, $pdo);
-            sendEmail($email, $content);
+        if (!$appt) {
+            $_SESSION['cancel_message'] = "Unable to cancel: appointment not found.";
         } else {
-            $_SESSION['cancel_message'] =  "Unable to cancel.";
+            // local server time convention (same as booking.php)
+            try {
+                $now = new DateTime();
+                $startDt = new DateTime($appt['start_time']);
+            } catch (Exception $ex) {
+                $_SESSION['cancel_message'] = "❌ Invalid appointment datetime.";
+                $startDt = null;
+            }
+
+            $secondsToStart = $startDt ? ($startDt->getTimestamp() - $now->getTimestamp()) : PHP_INT_MAX;
+
+            // roles
+            $isCustomer = ($appt['customer_user_id'] == $user_id);
+            $isProvider = (isset($_SESSION['provider_profiles_id']) && $_SESSION['provider_profiles_id'] == $appt['provider_id']);
+
+            if (!$isCustomer && !$isProvider) {
+                $_SESSION['cancel_message'] = "❌ You are not authorized to cancel this appointment.";
+            } elseif (strtolower($appt['status']) === 'cancelled') {
+                $_SESSION['cancel_message'] = "❗ Appointment is already cancelled.";
+            } elseif ($isCustomer && $secondsToStart < 2 * 3600) {
+                $_SESSION['cancel_message'] = "❌ Too late to cancel — customers must cancel at least 2 hours before the appointment.";
+            } elseif ($isProvider && $secondsToStart < 24 * 3600) {
+                $_SESSION['cancel_message'] = "❌ Too late to cancel — providers must cancel at least 24 hours before the appointment.";
+            } else {
+                // allowed: mark appointment cancelled
+                $stmt = $pdo->prepare("UPDATE appointments SET status = :status, updated_by = :updated_by WHERE id = :id");
+                $stmt->execute([
+                    ':status' => 'Cancelled',
+                    ':updated_by' => $user_id,
+                    ':id' => $appointmentId
+                ]);
+
+                if ($stmt->rowCount() > 0) {
+                    $_SESSION['cancel_message'] = "Appointment successfully cancelled.";
+
+                    // notify customer (keeps your existing functions/flow)
+                    $email = getEmail($username);
+                    $content = getAppointmentEmailContent($appointmentId, $pdo);
+                    sendEmail($email, $content);
+                } else {
+                    $_SESSION['cancel_message'] = "Unable to cancel.";
+                }
+            }
         }
     }
+    /* --- END: minimal insertion implementing cancellation windows & auth --- */
 
 } catch (Exception $e) {
     // Handle all errors cleanly

@@ -1,5 +1,5 @@
 <?php
-session_start();
+require __DIR__ . '/../include/session_check.php';
 
 // Database configuration
 $host = 'localhost';

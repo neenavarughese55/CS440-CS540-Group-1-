@@ -43,6 +43,26 @@
             });
         });
 
+        function searchTable() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const table = document.getElementById("myTable");
+            const rows = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < rows.length; i++) { // skip header row
+                const cells = rows[i].getElementsByTagName("td");
+                let rowContainsSearch = false;
+
+                for (let j = 0; j < cells.length; j++) {
+                if (cells[j].textContent.toLowerCase().includes(input)) {
+                    rowContainsSearch = true;
+                    break;
+                }
+                }
+
+                rows[i].style.display = rowContainsSearch ? "" : "none";
+            }
+        }
+
 
     </script>
 </head>
@@ -88,7 +108,10 @@
             </select>
           </div><br><br>
 
-    <h4>Select Available Spots:</h4>
+    <h3>Select Available Appointments:</h3>
+    <br>
+    <input type="text" id="searchInput" style="width: 50%; display: block; margin: 0 auto;" placeholder="Type to search..." onkeyup="searchTable()">
+    <br>
 
     <form id="myForm" method="post" action="./backend/booking.php">
         <?php
@@ -113,7 +136,7 @@
             $result = $conn->query($sql);
 
             if ($result->num_rows > 0) {
-                echo "<table border='1' cellpadding='8' cellspacing='0'>";
+                echo "<table id='myTable' border='1' cellpadding='8' cellspacing='0'>";
                 echo "<thead>
                         <tr>
                             <th>ID</th>
