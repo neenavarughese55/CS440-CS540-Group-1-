@@ -1,10 +1,13 @@
 # CS440-CS540-Group-1-
 Let’s Book - User Manual 
-1. Introduction 
+1. Introduction
+   
 1.1 Website Overview 
+
 Let’s Book is an appointment-booking website that allows users to schedule 
 appointments with service providers across three industries: Beauty, Fitness, and 
 Medical. 
+
 • In the Beauty category, users can book services such as hair styling, nail care, 
 and other personal grooming services. 
 • In Fitness, users may schedule one-on-one personal training sessions or join 
@@ -13,9 +16,12 @@ guided sessions such as yoga.
 with qualified medical professionals. 
 Let’s Book offers a streamlined, user-friendly experience intended to make booking and 
 managing appointments simple, accessible, and efficient. 
-1.2 Key Features 
+
+1.2 Key Features
+
 Let’s Book provides essential tools for Administrators, Service Providers, and 
 Customers: 
+
 • User registration and login for all role types 
 • Browsing and booking services across three categories 
 • One-on-one appointment scheduling (ensuring privacy and avoiding conflicts) 
@@ -26,34 +32,42 @@ reminders
 • Customers can book, cancel, and reschedule appointments within the allowed 
 time window 
 • Admins can deactivate inactive customer or service provider accounts (admins 
-cannot deactivate other admins) 
-Notifications are sent whenever: 
+cannot deactivate other admins)
+
+Notifications are sent whenever:
+
 • An appointment is booked 
 • An appointment is changed or cancelled 
 • A scheduled appointment is approaching 
-• A service provider cancels or modifies an appointment 
-1.3 System Requirements 
+• A service provider cancels or modifies an appointment
+
+1.3 System Requirements
+
 Supported Devices 
 • Desktop or laptop computer 
 • Tablet 
-• Smartphone (iOS or Android) 
+• Smartphone (iOS or Android)
+
 Supported Browsers 
 • Google Chrome (latest version recommended) 
 • Mozilla Firefox 
 • Safari (macOS/iOS) 
 • Microsoft Edge 
-Using outdated browsers may result in unexpected behaviour. 
+
+Using outdated browsers may result in unexpected behaviour.
+
 Additional Requirements 
 • Stable internet connection 
 • Access to the email address used during registration (for confirmations and 
 reminders) 
+
 Note for Development or Local Testing 
 If the system is being run locally (e.g., for academic or testing purposes), users will need 
 XAMPP to run: 
 • Apache (for the website) 
 • MySQL (for the database) 
 End-users of a deployed public website do not require XAMPP. 
-2. Getting Started 
+3. Getting Started 
 2.1 Creating an Account / Logging In 
 1. On the Welcome Page, click Log In / Register at the top of the screen. 
 2. 
