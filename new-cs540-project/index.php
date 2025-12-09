@@ -26,7 +26,7 @@
         <header>
             <nav class="navbar navbar-expand-lg bg-body-tertiary">
                 <div class="container">
-                    <a class="navbar-brand" href="welcome.php">BeautyHealthFit</a>
+                    <a class="navbar-brand" href="welcome.php">Let's Book!</a>
 
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                         data-bs-target="#navbarContent">
@@ -82,9 +82,9 @@
             </div>
 
             <div class="service-card health">
-                <img src="images/health.webp" alt="Health services">
+                <img src="images/health.webp" alt="Medical services">
                 <div class="service-text">
-                    <h2>Health</h2>
+                    <h2>Medical</h2>
                     <p>Doctors, therapy, and wellness appointments made easy.</p>
 
                     <a href="index_demo.php">Login/Register →</a>
