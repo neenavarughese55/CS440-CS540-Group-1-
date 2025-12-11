@@ -1,127 +1,204 @@
-<!-- Code Review done by Neena Varughese -->
 <?php
-    // Enable all PHP error reporting (useful during development)
+  // Start or resume the current session so we can store/read login messages,
+  // authentication status, and other user session data.
+  session_start();
 
-    error_reporting(E_ALL);
-
-    // Show the errors directly on the webpage for debugging
-    // NOTE: Turn this off in production to avoid security risks
-    ini_set('display_errors', '1');
+  // Show all PHP errors on-screen (for debugging purposes only).
+  // IMPORTANT: Disable this in production for security.
+  error_reporting(E_ALL);
+  ini_set('display_errors', '1');
 ?>
 
-<!DOCTYPE html>
-<html lang="en"> <!-- Set language of the websote to English -->
-    <head>
-        <meta charset="UTF-8"> <!-- Sets character encoding to UTF-8 for special characters -->
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- Makes the page responsive on mobile devices -->
-        
-        <title>Let's Book - Welcome</title> <!-- Tab name -->
 
-        <!-- Bootstrap 5 CSS from CDN for layout & styling-->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        
-        <!-- Bootstrap JS bundle (enables navbar toggle menu, modals, etc.) -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<html lang="en">
+  <head>
+    <!-- Standard metadata -->
+    <meta charset="UTF-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
 
-        <link rel="stylesheet" href="css/welcome.css">
-    </head>
+    <title>Let's Book</title>
 
-    <body id="background">  <!-- 'background' used in CSS to style the body -->
+    <!-- Makes layout adapt to mobile screens -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Page styling -->
+    <link rel="stylesheet" href="./css/index.css">
 
-        <!-- ⭐ Navigation -->
-        <header>
-            <nav class="navbar navbar-expand-lg bg-body-tertiary">
-                <!-- Bootstrap 'container' centers the navbar content -->
-                <div class="container">
-                     <!-- Website name / logo, links back to welcome page -->
-                    <a class="navbar-brand" href="welcome.php">Let's Book!</a>
+    <!-- Load jQuery from CDN (used by index.js) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-                    <!-- Button that appears on mobile (hamburger icon) -->
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarContent"> <!-- ID of the collapsible menu -->
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
+    <!-- Custom page JavaScript for switching login/register panels -->
+    <script src="./js/index.js"></script>
 
-                     <!-- Collapsible section for mobile view -->
-                    <div class="collapse navbar-collapse" id="navbarContent">
-                         <!-- 'ms-auto' pushes the links to the right side -->
-                        <div class="navbar-nav ms-auto">
-                            <!-- Highlighted navigation item for Home -->
-                            <a class="nav-link active" href="welcome.php">Home</a>
+  </head>
 
-                            <!-- Login/Register link -->
-                            <a class="nav-link" href="index_demo.php">Log In / Register</a>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-        </header>
+  <body>
+    <!-- Main login/register container card -->
+    <div class="card">
 
-        <!-- ⭐ Hero Section -->
-        <section class="hero"> <!-- Section: main introduction banner -->
-            <div class="hero-container"> <!-- Likely styled with flexbox in CSS -->
+      <!-- Tabs for switching between Login and Register panels -->
+      <div class="tabs">
+        <!-- Login tab is active by default -->
+        <button id="loginTab" class="active" onclick="switchPanel('login')">Login</button>
 
-                <!-- Left side: image card -->
-                <div class="hero-image-card">
-                    <!-- Website’s combined category illustration -->
-                    <img src="images/fitbeauheal.webp" alt="logo" />
-                </div>
+        <!-- Registration tab -->
+        <button id="regTab" onclick="switchPanel('reg')">Register</button>
+      </div>
 
-                <!-- Right side: welcome message -->
-                <div class="hero-text">
-                    <h1>Welcome</h1> <!-- Large heading -->
-                    <p>
-                         <!-- Intro paragraph explaining the website purpose -->
-                        Do not know where to find a trustworthy service from getting your nails done
-                        to examining your health or exercise your productivity?
-                        You have come to the right place.
-                        We offer beauty, health, and fitness services with just one click.
-                        Explore options and find the right expert for your needs!
-                    </p>
-                </div>
+      <!-- ======================= LOGIN PANEL ======================= -->
+      <div id="loginPanel" class="panel active">
 
-            </div>
-        </section>
+        <!-- Display login error/success messages stored in the session -->
+        <span class="errorMsg">
+          <?php
+            if (isset($_SESSION['message'])) {
+              echo $_SESSION['message'];
+              unset($_SESSION['message']);   // Remove so it shows only once
+            }
+          ?>
+        </span>
 
-        <!-- ⭐ Services -->
-        <section class="services"> <!-- Section containing all 3 service boxes -->
+        <!-- Login form -->
+        <form id="loginForm" action="./backend/login.php" method="post">
 
-            <div class="service-card beauty"> <!-- Card styled with 'beauty' theme color -->
-                <!-- Category image -->
-                <img src="images/beauty.jpg" alt="Beauty services">
+          <!-- Hidden action flag so login.php knows which action is being performed -->
+          <input type="hidden" name="action" value="login" />
 
-                <!-- Text inside the card -->
-                <div class="service-text">
-                    <h2>Beauty</h2> <!-- Category title -->
-                    <p>Nails, hair, makeup, and wellness treatments from top providers.</p>
+          <!-- Username input -->
+          <div class="form-group">
+            <label>Username</label>
+            <input type="username" name="username" value="" id="username-login" required />
+          </div>
 
-                    <!-- Link requires user to login/register -->
-                    <a href="index_demo.php">Login/Register →</a>
-                </div>
-            </div>
+          <!-- Password input -->
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" minlength="6" required />
+          </div>
 
-            <div class="service-card health"> <!-- 'health' class sets card color -->
-                <img src="images/health.webp" alt="Medical services">
-                <div class="service-text">
-                    <h2>Medical</h2>
-                    <p>Doctors, therapy, and wellness appointments made easy.</p>
+          <!-- Submit login -->
+          <button type="submit">Login</button>
+        </form>
+      </div>
+      <!-- ======================= END LOGIN PANEL ======================= -->
 
-                    <a href="index_demo.php">Login/Register →</a>
-                </div>
-            </div>
 
-            <div class="service-card fitness"> <!-- 'fitness' class sets card color -->
-                <img src="images/fitness.jpg" alt="Fitness services">
-                <div class="service-text">
-                    <h2>Fitness</h2>
-                    <p>Personal training, gym memberships, and group classes.</p>
+      <!-- ======================= REGISTRATION PANEL ======================= -->
+      <div id="regPanel" class="panel">
 
-                    <a href="index_demo.php">Login/Register →</a>
-                </div>
-            </div>
+        <!-- Registration errors/success display -->
+        <span class="errorMsg">
+          <?php
+            if (isset($_SESSION['message'])) {
+              echo $_SESSION['message'];
+              unset($_SESSION['message']);
+            }
+          ?>
+        </span>
 
-        </section> <!-- End of services section -->
-    </body>
+        <!-- Registration form -->
+        <form id="registerForm" action="./backend/register.php" method="post">
+          
+          <!-- Hidden input telling register.php what action is being performed -->
+          <input type="hidden" name="action" value="register" />
 
+          <!-- Username input -->
+          <div class="form-group">
+            <label>Username</label>
+            <input type="username" name="registered-username" id="registered-username" required />
+          </div>
+
+          <!-- Email input -->
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="registered-email" id="registered-email" />
+          </div>
+
+          <!-- Select user role -->
+          <div class="form-group">
+            <label>Register As</label>
+            <select name="role" id="role">
+              <option value="customer">Customer</option>
+              <option value="service-provider">Service Provider</option>
+            </select>
+          </div>
+
+          <!-- Business name only shown when role = service-provider -->
+          <div class="form-group" id="business-name-container">
+            <label>Business Name</label>
+            <input type="text" name="business-name" id="business-name" />
+          </div>
+
+          <!-- Category dropdown populated from database -->
+          <div class="form-group" id="category-container">
+            <label>Category</label>
+            <select name="category" id="category">
+              <?php
+                // Connect to MySQL database
+                $conn = new mysqli("localhost", "root", "", "cs540");
+
+                // Stop execution if connection fails
+                if ($conn->connect_error) {
+                    die("Connection failed: " . $conn->connect_error);
+                }
+
+                // Get list of categories for service providers
+                $sql = "SELECT id, name FROM categories";
+                $result = $conn->query($sql);
+
+                // Output options
+                if ($result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                        $id   = htmlspecialchars($row["id"]);
+                        $name = htmlspecialchars($row["name"]);
+                        echo "<option value=\"$id\">$name</option>";
+                    }
+                }
+
+                // Close DB connection
+                $conn->close();
+              ?>
+            </select>
+          </div>
+
+          <!-- File upload for provider qualifications -->
+          <div class="form-group" id="qualifications-container">
+            <label>Qualifications</label>
+            <input type="file" name="qualifications" id="qualifications" />
+          </div>
+
+          <!-- Password creation -->
+          <div class="form-group">
+            <label>Password (≥6 characters)</label>
+            <input type="password" id="registered-password" name="registered-password" minlength="6" />
+          </div>
+
+          <!-- Confirm password -->
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" id="registered-password-2" name="registered-password-2" minlength="6" />
+          </div>
+
+          <!-- Automatically detect user's timezone -->
+          <input type="hidden" name="timezone" id="tz-input" value="UTC" />
+          <script>
+            (function() {
+              try {
+                // Use browser API to detect timezone
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (tz) document.getElementById('tz-input').value = tz;
+              } catch (e) {
+                // If detection fails, keep UTC default
+              }
+            })();
+          </script>
+
+          <!-- Submit registration -->
+          <button type="submit" id="sub-btn">Create Account</button>
+        </form>
+      </div>
+      <!-- ======================= END REGISTRATION PANEL ======================= -->
+
+    </div> <!-- End main card -->
+  </body>
 </html>

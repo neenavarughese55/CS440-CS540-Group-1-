@@ -180,3 +180,63 @@ form[action$="slot_creating.php"] input[type="submit"]:active {
     min-height: 80px;
   }
 }
+
+/* Time dropdown – attach this class in JS: select.classList.add("time-select"); */
+.time-select {
+  width: 100%;
+  max-width: 220px; /* tweak or remove if needed */
+  padding: 0.45rem 2.25rem 0.45rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #f9fafb;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+  outline: none;
+  cursor: pointer;
+
+  /* remove default arrow & style our own */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* custom arrow using SVG */
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7L10 12L15 7' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 14px 14px;
+
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease, transform 0.05s ease;
+  box-sizing: border-box;
+}
+
+.time-select:hover {
+  background-color: #f3f4f6;
+}
+
+.time-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb33;
+  background-color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Disabled state */
+.time-select:disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Option styling (where supported) */
+.time-select option {
+  font-weight: 400;
+  color: #111827;
+}
+
+/* If time dropdowns are inside your form-group, align nicely */
+.form-group .time-select {
+  width: 100%;
+}

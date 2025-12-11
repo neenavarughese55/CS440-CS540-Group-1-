@@ -1,7 +1,5 @@
 <?php
-require __DIR__ . '/../include/session_check.php';
-
-
+session_start();
 
 // Database configuration
 $host = 'localhost';
@@ -19,12 +17,12 @@ $notes = trim($_POST['notes'] ?? '');
 // Basic checks
 if (empty($user_id)) {
     $_SESSION['booking_message'] = "❌ You must be logged in to book an appointment.";
-    header("Location: ..booking.php");
+    header("Location: ../booking.php");
     exit;
 }
 if ($slot_id <= 0) {
     $_SESSION['booking_message'] = "❌ Invalid slot selected.";
-    header("Location: ..booking.php");
+    header("Location: ../booking.php");
     exit;
 }
 
@@ -55,61 +53,59 @@ try {
     if (!$slot) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Slot not found.";
-        header("Location: ..booking.php");
+        header("Location: ../booking.php");
         exit;
     }
     if ((int)$slot['is_active'] !== 1) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ This slot is not active.";
-        header("Location: ..booking.php");
+        header("Location: ../booking.php");
         exit;
     }
     if (empty($slot['start_time']) || empty($slot['end_time'])) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Slot has invalid times.";
-        header("Location: ..booking.php");
+        header("Location: ../booking.php");
         exit;
     }
 
     // 2) Parse times (assume they are local already)
     try {
-        $startDt = new DateTime($slot['start_time']);
-        $endDt   = new DateTime($slot['end_time']);
+        $tz = new DateTimeZone("America/Chicago");
+        $startDt = new DateTime($slot['start_time'], $tz);
+        $endDt   = new DateTime($slot['end_time'], $tz);
     } catch (Exception $ex) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Slot has invalid datetime format.";
-        header("Location: ..booking.php");
+        header("Location: ../booking.php");
         exit;
     }
 
     // 3) Ensure slot is in the future (local time)
-    $now = new DateTime();
+    $now = new DateTime("now", new DateTimeZone("America/Chicago"));
     if ($startDt <= $now) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ Cannot book a slot in the past.";
-        header("Location: ..booking.php");
+        header("Location: ../booking.php");
         exit;
     }
 
-// Enforce minimum 2-hour advance booking ---
-$minAdvance = new DateInterval('PT2H'); // 2 hours
-$deadline = (clone $now)->add($minAdvance); // now + 2h
-if ($startDt < $deadline) {
-    $pdo->rollBack();
-    $_SESSION['booking_message'] = "❌ You must book at least 2 hours before the appointment start time.";
-    header("Location: ..booking.php");
-    exit;
-}
-
-
-
+    // 3) Must book at least 2 hours in advance
+    $minAdvance = new DateInterval('PT2H');
+    $deadline = (clone $now)->add($minAdvance);
+    if ($startDt < $deadline) {
+        $pdo->rollBack();
+        $_SESSION['booking_message'] = "❌ You must book at least 2 hours before the appointment start time.";
+        header("Location: ../booking.php");
+        exit;
+    }
 
     // 4) Check overlapping appointments
     $overlapStmt = $pdo->prepare("
         SELECT 1 FROM appointments
         WHERE user_id = :user_id
-        AND :slot_start < end_time
-        AND :slot_end > start_time
+          AND :slot_start < end_time
+          AND :slot_end > start_time
         LIMIT 1
     ");
     $overlapStmt->execute([
@@ -120,7 +116,7 @@ if ($startDt < $deadline) {
     if ($overlapStmt->fetch()) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ You already have an appointment during that time. Please choose another slot.";
-        header("Location: ..booking.php");
+        header("Location: ../booking.php");
         exit;
     }
 
@@ -132,7 +128,7 @@ if ($startDt < $deadline) {
     if ($count >= $capacity) {
         $pdo->rollBack();
         $_SESSION['booking_message'] = "❌ This slot is already full.";
-        header("Location: ..booking.php");
+        header("Location: ../booking.php");
         exit;
     }
 
@@ -170,6 +166,6 @@ if ($startDt < $deadline) {
     $_SESSION['booking_message'] = "Error: " . htmlspecialchars($e->getMessage() ?? '');
 }
 
-header("Location: ..booking.php");
+header("Location: ../booking.php");
 exit;
 ?>

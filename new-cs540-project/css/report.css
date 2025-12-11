@@ -74,3 +74,133 @@ thead {
   cursor: not-allowed;
   box-shadow: none;
 }
+
+/*Modern UI: */
+/* === Shared containers for both reports === */
+#user-report-container,
+#appointment-report-container {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem; /* compact padding */
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.6rem 1rem; /* tight spacing */
+  align-items: end;
+  overflow-x: visible; /* avoid horizontal scrollbar */
+}
+
+/* Headings (optional if you remove inline styles) */
+h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Labels inside report containers */
+#user-report-container label,
+#appointment-report-container label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 0.2rem;
+}
+
+/* Select & date inputs */
+#user-report-container select,
+#user-report-container input[type="date"],
+#appointment-report-container select,
+#appointment-report-container input[type="date"] {
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background-color: #f9fafb;
+  font-size: 0.85rem;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease, transform 0.05s ease;
+  appearance: none;
+  box-sizing: border-box;
+}
+
+#user-report-container select:focus,
+#user-report-container input[type="date"]:focus,
+#appointment-report-container select:focus,
+#appointment-report-container input[type="date"]:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb33;
+  background-color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* “ALL” option subtle styling */
+#user-report-container select option[value="ALL"],
+#appointment-report-container select option[value="ALL"] {
+  color: #6b7280;
+}
+
+/* Base Run button styling (shared) */
+.run-btn {
+  grid-column: 1 / -1; /* take full row */
+  justify-self: flex-end;
+
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #ffffff;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease,
+    opacity 0.15s ease;
+}
+
+.run-btn::after {
+  content: "↻";
+  font-size: 0.9rem;
+}
+
+.run-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(22, 163, 74, 0.45);
+  filter: brightness(1.03);
+}
+
+.run-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.3);
+}
+
+.run-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Mobile: single column + full-width button */
+@media (max-width: 640px) {
+  #user-report-container,
+  #appointment-report-container {
+    grid-template-columns: 1fr;
+  }
+
+  .run-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

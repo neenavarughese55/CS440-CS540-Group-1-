@@ -1,0 +1,40 @@
+.email-list {
+  width: 500px;
+  margin: 20px auto;
+  font-family: Arial, sans-serif;
+}
+
+/* Base email card */
+.email {
+  position: relative;
+  padding: 15px 20px;
+  margin-bottom: 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+/* Blue bar on the left = unread */
+.email.unread::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: #1a73e8; /* blue */
+  border-radius: 8px 0 0 8px;
+}
+
+/* Hover effect */
+.email:hover {
+  background: #f5faff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Selected email = blue border around */
+.email.selected {
+  box-shadow: 0 0 0 2px #1a73e8;
+}

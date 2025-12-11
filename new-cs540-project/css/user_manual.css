@@ -1,0 +1,55 @@
+body {
+  font-size: 14px;
+  background: #ffffff;
+  margin: 60px 90px;
+  line-height: 1.4;
+}
+
+.page {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 60px;
+  font-weight: normal;
+}
+
+h2,
+h3 {
+  font-weight: normal;
+  margin: 16px 0 6px;
+}
+
+p {
+  margin: 8px 0;
+}
+
+.hyphen-list {
+  list-style: none;
+  margin: 8px 0 8px 0;
+  padding-left: 30px;
+}
+
+.hyphen-list li {
+  position: relative;
+  margin: 4px 0;
+}
+
+.hyphen-list li::before {
+  content: "-";
+  position: absolute;
+  left: -18px;
+}
+
+.section-label {
+  margin-top: 4px;
+}
+
+.bold-label {
+  font-weight: bold;
+  margin-top: 18px;
+  margin-bottom: 4px;
+}

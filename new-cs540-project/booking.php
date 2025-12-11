@@ -1,10 +1,7 @@
 <?php
+    // Make sure the user is logged in; `session_check.php` should block or redirect
+    // unauthenticated users from accessing this booking page.
     require 'include/session_check.php';
-    
-    // Show up all PHP errors for debugging:
-    error_reporting(E_ALL);
-    ini_set('display_errors', '1');
-
 ?>
 
 
@@ -12,129 +9,142 @@
 <html>
 <head>
     <title>Booking Form</title>
+
+    <!-- Main page styling -->
     <link rel="stylesheet" href="./css/booking.css">
     <link rel="stylesheet" href="./css/header.css">
-    <script>
 
-        // Submit form
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll(".book").forEach(function(button) {
-                button.addEventListener("click", function() {
-                    const row = this.closest("tr");
-
-                    document.getElementById("slot_id").value = row.querySelector(".slot_id").textContent.trim();
-                    document.getElementById("provider_id").value = row.querySelector(".provider_id").textContent.trim();
-                    document.getElementById("business_name").value = row.querySelector(".business_name").textContent.trim();
-                    document.getElementById("category_id").value = row.querySelector(".category_id").textContent.trim();
-                    document.getElementById("category_name").value = row.querySelector(".category_name").textContent.trim();
-                    document.getElementById("notes").value = row.querySelector(".notes").textContent.trim();
-                    document.getElementById("start_time").value = row.querySelector(".start_time").textContent.trim();
-                    document.getElementById("end_time").value = row.querySelector(".end_time").textContent.trim();
-
-                    // console.log("slot_id: " + document.getElementById("slot_id").value);
-                    // console.log("business_name: " + document.getElementById("business_name").value);
-                    // console.log("category_id: " + document.getElementById("category_id").value);
-                    // console.log("category_name: " + document.getElementById("category_name").value);
-                    // console.log("notes: " + document.getElementById("notes").value);
-                    // console.log("start_time: " + document.getElementById("start_time").value);
-                    // console.log("end_time: " + document.getElementById("end_time").value);
-                    document.getElementById("myForm").submit();
-                });
-            });
-        });
-
-        function searchTable() {
-            const input = document.getElementById("searchInput").value.toLowerCase();
-            const table = document.getElementById("myTable");
-            const rows = table.getElementsByTagName("tr");
-
-            for (let i = 1; i < rows.length; i++) { // skip header row
-                const cells = rows[i].getElementsByTagName("td");
-                let rowContainsSearch = false;
-
-                for (let j = 0; j < cells.length; j++) {
-                if (cells[j].textContent.toLowerCase().includes(input)) {
-                    rowContainsSearch = true;
-                    break;
-                }
-                }
-
-                rows[i].style.display = rowContainsSearch ? "" : "none";
-            }
-        }
-
-
-    </script>
+    <!-- JavaScript for booking behavior (search/filter, click events, etc.) -->
+    <script src="./js/booking.js"></script>
 </head>
 <body>
+    <!-- Shared header (navigation bar, logo, etc.) -->
     <?php require 'include/header.php'; ?>
 
+    <!-- Display one-time message (success/error/info) related to booking -->
     <span class="errorMsg">
         <?php
         if (isset($_SESSION['booking_message'])) {
             echo $_SESSION['booking_message'];
+            // Remove the message so it doesn't show again on refresh
             unset($_SESSION['booking_message']);
         }
         ?>
     </span>
 
+    <!-- Hidden category selector (can be used if you later show category filter here) -->
     <div class="form-group" id="category-container" style="display: none;">
-            <label>Category</label>
-            <select name="category" id="category">
-              <?php
-                // Database connection
-                $conn = new mysqli("localhost", "root", "", "cs540");
+        <label>Category</label>
+        <select name="category" id="category">
+            <?php
+            // Connect to the database using MySQLi.
+            $conn = new mysqli("localhost", "root", "", "cs540");
 
-                // Check connection
-                if ($conn->connect_error) {
-                    die("Connection failed: " . $conn->connect_error);
+            // Stop execution if connection fails.
+            if ($conn->connect_error) {
+                die("Connection failed: " . $conn->connect_error);
+            }
+
+            // Load all categories from the `categories` table.
+            $sql = "SELECT id, name FROM categories";
+            $result = $conn->query($sql);
+
+            // Populate category dropdown options.
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    $id   = htmlspecialchars($row["id"]);
+                    $name = htmlspecialchars($row["name"]);
+                    echo "<option value=\"$id\">$name</option>";
                 }
+            }
 
-                // Query provider profiles
-                $sql = "SELECT id, name FROM categories";
-                $result = $conn->query($sql);
+            // Close the database connection for this block.
+            $conn->close();
+            ?>
+        </select>
+    </div>
+    <br>
 
-                // Populate dropdown
-                if ($result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-                        $id = htmlspecialchars($row["id"]);
-                        $name = htmlspecialchars($row["name"]);
-                        echo "<option value=\"$id\">$name</option>";
-                    }
-                }
-
-                $conn->close();
-              ?>
-            </select>
-          </div><br><br>
-
+    <!-- Section title and search bar -->
     <h3>Select Available Appointments:</h3>
-    <br>
-    <input type="text" id="searchInput" style="width: 50%; display: block; margin: 0 auto;" placeholder="Type to search..." onkeyup="searchTable()">
-    <br>
+    <input type="text"
+           id="searchInput"
+           style="width: 50%; display: block; margin: 40px auto 20px auto;"
+           placeholder="Type to search...">
+           <!-- (searchInput is usually used by JS in booking.js to filter rows) -->
 
+    <!-- Category dropdown (visible) for filtering displayed slots by category -->
+    <?php
+        echo "<select class='modern-select' id='category-dropdown' style='width: 50%; margin: 20px auto; display: block;'>";
+        echo "<option value='any'>-Any Categories-</option>";
+
+        // Connect again to the database to fetch categories for this visible dropdown.
+        $conn = new mysqli("localhost", "root", "", "cs540");
+
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+
+        // Load all categories again.
+        $sql = "SELECT id, name FROM categories";
+        $result = $conn->query($sql);
+
+        // Fill dropdown with category names.
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $id   = htmlspecialchars($row["id"]);
+                $name = htmlspecialchars($row["name"]);
+                // Use category name as the value (for filtering by name in JS).
+                echo "<option value=\"$name\">$name</option>";
+            }
+        }
+        echo "</select>";
+    ?>
+
+    <!-- Main booking form. Hidden inputs are filled in by JavaScript before submit. -->
     <form id="myForm" method="post" action="./backend/booking.php">
         <?php
+            // Connect to database to retrieve available appointment slots.
             $conn = new mysqli("localhost", "root", "", "cs540");
 
             if ($conn->connect_error) {
                 die("Connection failed: " . $conn->connect_error);
             }
 
+            // Optional: if a provider is logged in, only show their own slots.
             $provider_profiles_id_stmt = "";
 
             if (isset($_SESSION['provider_profiles_id'])) {
-                $provider_profiles_id = $_SESSION['provider_profiles_id'];
+                $provider_profiles_id      = $_SESSION['provider_profiles_id'];
+                // This string is injected into the WHERE clause.
                 $provider_profiles_id_stmt = "provider_id = " . $provider_profiles_id . " AND ";
             }
 
-            $sql = "SELECT s.id, s.provider_id, pp.business_name, c.id as category_id, c.name as category_name, s.notes, start_time, end_time
-                    FROM appointment_slots s 
-                    LEFT JOIN provider_profiles pp ON s.provider_id = pp.id 
-                    LEFT JOIN categories c ON s.category_id = c.id WHERE " . $provider_profiles_id_stmt . 
-                    " s.id NOT IN (SELECT slot_id FROM appointments)";
+            /**
+             * Appointment slot query:
+             * - Select slots from `appointment_slots` (alias `s`)
+             * - Join with `provider_profiles` to get provider business name
+             * - Join with `categories` to get category name
+             * - Optionally restrict by provider_id if logged-in user is a provider
+             * - Exclude slots that already exist in the `appointments` table
+             */
+            $sql = "SELECT s.id,
+                           s.provider_id,
+                           pp.business_name,
+                           c.id   AS category_id,
+                           c.name AS category_name,
+                           s.notes,
+                           start_time,
+                           end_time
+                    FROM appointment_slots s
+                    LEFT JOIN provider_profiles pp ON s.provider_id = pp.id
+                    LEFT JOIN categories c ON s.category_id = c.id
+                    WHERE " . $provider_profiles_id_stmt . "
+                    s.id NOT IN (SELECT slot_id FROM appointments)";
+
             $result = $conn->query($sql);
 
+            // If there are available slots, build the HTML table.
             if ($result->num_rows > 0) {
                 echo "<table id='myTable' border='1' cellpadding='8' cellspacing='0'>";
                 echo "<thead>
@@ -147,21 +157,24 @@
                             <th>End Time</th>
                             <th>Book</th>
                         </tr>
-                        </thead>";
+                      </thead>";
                 echo "<tbody>";
 
+                // Output each available slot as a table row.
                 while ($row = $result->fetch_assoc()) {
-                    $slotId = htmlspecialchars($row["id"]);
-                    $providerId = htmlspecialchars($row["provider_id"]);
-                    $business_name = htmlspecialchars($row["business_name"]);
-                    $category_name = htmlspecialchars($row["category_name"]);
-                    $notes = htmlspecialchars($row["notes"]);
-                    $category_id = htmlspecialchars($row["category_id"]);
+                    $slotId        = htmlspecialchars($row["id"] ?? '');
+                    $providerId    = htmlspecialchars($row["provider_id"] ?? '');
+                    $business_name = htmlspecialchars($row["business_name"] ?? '');
+                    $category_name = htmlspecialchars($row["category_name"] ?? '');
+                    $notes         = htmlspecialchars($row["notes"] ?? '');
+                    $category_id   = htmlspecialchars($row["category_id"] ?? '');
 
-                // Display times as-is (local)
-                $startDisplay = htmlspecialchars($row["start_time"]);
-                $endDisplay   = htmlspecialchars($row["end_time"]);
+                    // Display times as-is; assume stored in local time or pre-converted.
+                    $startDisplay = htmlspecialchars($row["start_time"]);
+                    $endDisplay   = htmlspecialchars($row["end_time"]);
 
+                    // Each <td> gets a class so JavaScript can read the values
+                    // when a user clicks the "Book" button.
                     echo "<tr>
                             <td class='slot_id'>$slotId</td>
                             <td style='display:none;' class='provider_id'>$providerId</td>
@@ -172,77 +185,28 @@
                             <td class='start_time'>$startDisplay</td>
                             <td class='end_time'>$endDisplay</td>
                             <td><button type='button' class='book'>Book</button></td>
-                        </tr>";
+                          </tr>";
                 }
 
                 echo "</tbody></table>";
             } else {
+                // No open appointment slots exist.
                 echo "<p>No appointment slots found.</p>";
             }
 
+            // Close connection after we finish using it.
             $conn->close();
         ?>
 
-        <input type="hidden" name="slot_id" id="slot_id">
-        <input type="hidden" name="provider_id" id="provider_id">
-        <input type="hidden" name="business_name" id="business_name">
-        <input type="hidden" name="category_id" id="category_id">
-        <input type="hidden" name="category_name" id="category_name">
-        <input type="hidden" name="notes" id="notes">
-        <input type="hidden" name="start_time" id="start_time">
-        <input type="hidden" name="end_time" id="end_time">
-
-
-    <!-- <label for="provider">Select Provider:</label><br>
-    <select id="provider" name="provider" required>
-        <option value="">-- Please choose a provider --</option>
-        <?php
-            // // Database connection
-            // $conn = new mysqli("localhost", "root", "", "cs540");
-
-            // // Check connection
-            // if ($conn->connect_error) {
-            //     die("Connection failed: " . $conn->connect_error);
-            // }
-
-            // // Query provider profiles
-            // $sql = "SELECT id, business_name FROM provider_profiles";
-            // $result = $conn->query($sql);
-
-            // // Populate dropdown
-            // if ($result->num_rows > 0) {
-            //     while ($row = $result->fetch_assoc()) {
-            //         $providerId = htmlspecialchars($row["id"]);
-            //         $providerName = htmlspecialchars($row["business_name"]);
-            //         echo "<option value=\"$providerId\">$providerName</option>";
-            //     }
-            // } else {
-            //     echo "<option disabled>No providers available</option>";
-            // }
-
-            // $conn->close();
-        ?>
-    </select><br><br>
-
-
-        <label for="start-date">Start Date:</label><br>
-        <input type="date" id="start-date" name="start-date" required><br><br>
-
-        <label for="start-time">Start Time:</label><br>
-        <input type="time" id="start-time" name="start-time" required><br><br>
-
-        <label for="end-date">End Date:</label><br>
-        <input type="date" id="end-date" name="end-date" required><br><br>
-
-        <label for="end-time">End Time:</label><br>
-        <input type="time" id="end-time" name="end-time" required><br><br>
-
-        <label for="note">Note:</label><br>
-        <textarea id="notes" name="notes" rows="5" cols="40" placeholder="Enter any notes here..."></textarea><br><br> -->
-
-        <!-- <input type="submit" value="Book"> -->
+        <!-- Hidden inputs that will be populated via JS when clicking "Book" -->
+        <input type="hidden" name="slot_id"        id="slot_id">
+        <input type="hidden" name="provider_id"    id="provider_id">
+        <input type="hidden" name="business_name"  id="business_name">
+        <input type="hidden" name="category_id"    id="category_id">
+        <input type="hidden" name="category_name"  id="category_name">
+        <input type="hidden" name="notes"          id="notes">
+        <input type="hidden" name="start_time"     id="start_time">
+        <input type="hidden" name="end_time"       id="end_time">
     </form>
 </body>
 </html>
-
-
